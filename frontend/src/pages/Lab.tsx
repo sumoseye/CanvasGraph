@@ -47,7 +47,7 @@ export default function Lab() {
         setData(res);
         setErr("");
       })
-      .catch((e) => setErr("No completed summary found. Click 'Run pipelines + Jev' to start."));
+      .catch(() => setErr("No completed summary found. Click 'Run pipelines + Jev' to start."));
 
   useEffect(() => {
     load();
