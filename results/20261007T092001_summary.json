@@ -1,0 +1,168 @@
+{
+  "run": "20261007T092001",
+  "file": "data/sample_questions.json",
+  "pipelines": {
+    "rag": {
+      "n": 3,
+      "accuracy": 1.0,
+      "avg_tokens": 515.0,
+      "accuracy_per_1k_tokens": 1.9417,
+      "avg_latency_ms": 844.4,
+      "avg_completeness": 1.0
+    },
+    "graphrag": {
+      "n": 3,
+      "accuracy": 1.0,
+      "avg_tokens": 495.0,
+      "accuracy_per_1k_tokens": 2.0202,
+      "avg_latency_ms": 716.2,
+      "avg_completeness": 1.0
+    },
+    "agentic": {
+      "n": 3,
+      "accuracy": 1.0,
+      "avg_tokens": 476.0,
+      "accuracy_per_1k_tokens": 2.1008,
+      "avg_latency_ms": 638.4,
+      "avg_completeness": 1.0
+    },
+    "routed": {
+      "n": 3,
+      "accuracy": 1.0,
+      "avg_tokens": 502.0,
+      "accuracy_per_1k_tokens": 1.992,
+      "avg_latency_ms": 960.4,
+      "avg_completeness": 1.0
+    }
+  },
+  "limit": 3,
+  "fast_judge": true,
+  "breakdown_by_type": {
+    "aggregation": {
+      "rag": {
+        "n": 1,
+        "accuracy": 1.0,
+        "avg_tokens": 498.0,
+        "accuracy_per_1k_tokens": 2.008,
+        "avg_latency_ms": 509.1,
+        "avg_completeness": 1.0
+      },
+      "graphrag": {
+        "n": 1,
+        "accuracy": 1.0,
+        "avg_tokens": 476.0,
+        "accuracy_per_1k_tokens": 2.1008,
+        "avg_latency_ms": 586.8,
+        "avg_completeness": 1.0
+      },
+      "agentic": {
+        "n": 1,
+        "accuracy": 1.0,
+        "avg_tokens": 457.0,
+        "accuracy_per_1k_tokens": 2.1882,
+        "avg_latency_ms": 572.6,
+        "avg_completeness": 1.0
+      },
+      "routed": {
+        "n": 1,
+        "accuracy": 1.0,
+        "avg_tokens": 476.0,
+        "accuracy_per_1k_tokens": 2.1008,
+        "avg_latency_ms": 586.8,
+        "avg_completeness": 1.0
+      }
+    },
+    "multi-hop": {
+      "rag": {
+        "n": 1,
+        "accuracy": 1.0,
+        "avg_tokens": 540.0,
+        "accuracy_per_1k_tokens": 1.8519,
+        "avg_latency_ms": 675.6,
+        "avg_completeness": 1.0
+      },
+      "graphrag": {
+        "n": 1,
+        "accuracy": 1.0,
+        "avg_tokens": 523.0,
+        "accuracy_per_1k_tokens": 1.912,
+        "avg_latency_ms": 945.8,
+        "avg_completeness": 1.0
+      },
+      "agentic": {
+        "n": 1,
+        "accuracy": 1.0,
+        "avg_tokens": 500.0,
+        "accuracy_per_1k_tokens": 2.0,
+        "avg_latency_ms": 674.3,
+        "avg_completeness": 1.0
+      },
+      "routed": {
+        "n": 1,
+        "accuracy": 1.0,
+        "avg_tokens": 523.0,
+        "accuracy_per_1k_tokens": 1.912,
+        "avg_latency_ms": 945.8,
+        "avg_completeness": 1.0
+      }
+    },
+    "single-hop": {
+      "rag": {
+        "n": 1,
+        "accuracy": 1.0,
+        "avg_tokens": 507.0,
+        "accuracy_per_1k_tokens": 1.9724,
+        "avg_latency_ms": 1348.6,
+        "avg_completeness": 1.0
+      },
+      "graphrag": {
+        "n": 1,
+        "accuracy": 1.0,
+        "avg_tokens": 486.0,
+        "accuracy_per_1k_tokens": 2.0576,
+        "avg_latency_ms": 615.9,
+        "avg_completeness": 1.0
+      },
+      "agentic": {
+        "n": 1,
+        "accuracy": 1.0,
+        "avg_tokens": 471.0,
+        "accuracy_per_1k_tokens": 2.1231,
+        "avg_latency_ms": 668.4,
+        "avg_completeness": 1.0
+      },
+      "routed": {
+        "n": 1,
+        "accuracy": 1.0,
+        "avg_tokens": 507.0,
+        "accuracy_per_1k_tokens": 1.9724,
+        "avg_latency_ms": 1348.6,
+        "avg_completeness": 1.0
+      }
+    }
+  },
+  "when_agents_matter": {
+    "aggregation": "agentic_overkill",
+    "multi-hop": "agentic_overkill",
+    "single-hop": "agentic_overkill"
+  },
+  "jev_routing_accuracy": 0.0,
+  "routed_vs_always_agentic": {
+    "routed": {
+      "n": 3,
+      "accuracy": 1.0,
+      "avg_tokens": 502.0,
+      "accuracy_per_1k_tokens": 1.992,
+      "avg_latency_ms": 960.4,
+      "avg_completeness": 1.0
+    },
+    "always_agentic": {
+      "n": 3,
+      "accuracy": 1.0,
+      "avg_tokens": 476.0,
+      "accuracy_per_1k_tokens": 2.1008,
+      "avg_latency_ms": 638.4,
+      "avg_completeness": 1.0
+    }
+  }
+}

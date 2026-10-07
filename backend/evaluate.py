@@ -21,7 +21,8 @@ COST = {"rag": 1, "graphrag": 2, "agentic": 3}
 JUDGE_SYS = (
     "You are a strict grader. Given question, ground truth, and model answer, "
     'return JSON {"verdict":"PASS"|"FAIL","completeness":0-1,"reason":"..."}. '
-    "PASS if the answer contains the key facts of the ground truth (conflicts may mention both sides)."
+    "PASS if the answer contains the key facts of the ground truth "
+    "(conflicts may mention both sides). Be concise."
 )
 
 
@@ -40,6 +41,34 @@ def load_questions(path: str | Path) -> list[dict]:
             }
         )
     return out
+
+
+def _select_questions(questions: list[dict], limit: int | None) -> list[dict]:
+    """When limiting, prefer one question per type so every pipeline type is covered."""
+    if not limit or limit <= 0 or limit >= len(questions):
+        return questions
+    by_type: dict[str, list[dict]] = {}
+    for q in questions:
+        by_type.setdefault(q["type"], []).append(q)
+    picked: list[dict] = []
+    # round-robin across types
+    types = list(by_type.keys())
+    idx = {t: 0 for t in types}
+    while len(picked) < limit and types:
+        progressed = False
+        for t in list(types):
+            if len(picked) >= limit:
+                break
+            i = idx[t]
+            if i < len(by_type[t]):
+                picked.append(by_type[t][i])
+                idx[t] = i + 1
+                progressed = True
+            else:
+                types.remove(t)
+        if not progressed:
+            break
+    return picked
 
 
 def _done_keys(jsonl: Path) -> set[tuple[str, str]]:
@@ -69,21 +98,32 @@ def heuristic_judge(gt: str, answer: str) -> tuple[dict, dict]:
     hits = sum(1 for w in dict.fromkeys(gt_t) if w in ans)
     uniq = len(dict.fromkeys(gt_t))
     comp = hits / uniq
-    return {"verdict": "PASS" if comp >= 0.45 else "FAIL", "completeness": round(comp, 3), "reason": "token overlap"}, dict(ZERO)
+    return {
+        "verdict": "PASS" if comp >= 0.45 else "FAIL",
+        "completeness": round(comp, 3),
+        "reason": "token overlap",
+    }, dict(ZERO)
 
 
-def judge(question: str, gt: str, answer: str) -> tuple[dict, dict]:
-    if settings.GROQ_API_KEY:
-        data, usage = complete_json(
-            f"Question: {question}\nGround truth: {gt}\nAnswer: {answer[:6000]}",
-            system=JUDGE_SYS,
-        )
-        if data.get("verdict") in ("PASS", "FAIL"):
-            try:
-                comp = float(data.get("completeness", 0))
-            except (TypeError, ValueError):
-                comp = 0.0
-            return {"verdict": data["verdict"], "completeness": max(0.0, min(1.0, comp)), "reason": data.get("reason", "")}, usage
+def judge(question: str, gt: str, answer: str, *, fast: bool = False) -> tuple[dict, dict]:
+    # --fast or no key → pure heuristic (0 LLM tokens)
+    if fast or not settings.GROQ_API_KEY:
+        return heuristic_judge(gt, answer)
+    data, usage = complete_json(
+        f"Question: {question}\nGround truth: {gt}\nAnswer: {answer[:2000]}",
+        system=JUDGE_SYS,
+        max_tokens=settings.JUDGE_MAX_TOKENS,
+    )
+    if data.get("verdict") in ("PASS", "FAIL"):
+        try:
+            comp = float(data.get("completeness", 0))
+        except (TypeError, ValueError):
+            comp = 0.0
+        return {
+            "verdict": data["verdict"],
+            "completeness": max(0.0, min(1.0, comp)),
+            "reason": data.get("reason", ""),
+        }, usage
     return heuristic_judge(gt, answer)
 
 
@@ -142,7 +182,11 @@ def summarize(rows: list[dict]) -> dict:
                 breakdown[t][p] = _agg(sub)
     where = {}
     for t in types:
-        accs = {p: breakdown[t].get(p, {}).get("accuracy", 0) for p in ("rag", "graphrag", "agentic") if p in breakdown[t]}
+        accs = {
+            p: breakdown[t].get(p, {}).get("accuracy", 0)
+            for p in ("rag", "graphrag", "agentic")
+            if p in breakdown[t]
+        }
         if not accs:
             continue
         best = max(accs, key=accs.get)
@@ -163,13 +207,15 @@ def summarize(rows: list[dict]) -> dict:
         if not routed:
             continue
         correct = [r for r in group if r.get("correct")]
-        cheapest = min(correct, key=lambda r: (r.get("total_tokens", 0), COST.get(r["pipeline"], 9))) if correct else None
+        cheapest = (
+            min(correct, key=lambda r: (r.get("total_tokens", 0), COST.get(r["pipeline"], 9)))
+            if correct
+            else None
+        )
         route_n += 1
         picked = routed.get("routed_pipeline")
         if cheapest and picked == cheapest["pipeline"]:
             route_hits += 1
-        elif not cheapest and picked:
-            pass
     return {
         "pipelines": {p: _agg(rs) for p, rs in by_pipe.items()},
         "breakdown_by_type": breakdown,
@@ -190,11 +236,11 @@ def _ensure_store():
     return st
 
 
-def _run_one(q: dict, pipe: str, store) -> dict:
+def _run_one(q: dict, pipe: str, store, *, fast: bool = False) -> dict:
     t0 = time.time()
     out = RUNNERS[pipe](q["question"], store)
     ms = round((time.time() - t0) * 1000, 1)
-    j, ju = judge(q["question"], q["ground_truth"], out.get("answer", ""))
+    j, ju = judge(q["question"], q["ground_truth"], out.get("answer", ""), fast=fast)
     return _row(q, pipe, out, j, ju, ms)
 
 
@@ -208,35 +254,69 @@ def run_eval(
     pipelines: list[str] | None = None,
     run_id: str | None = None,
     progress=None,
+    limit: int | None = None,
+    sequential: bool = True,
+    fast: bool = False,
 ) -> dict:
     pipelines = pipelines or ["rag", "graphrag", "agentic"]
+    # default limit from settings when caller passes nothing
+    if limit is None:
+        limit = settings.TEST_LIMIT
     print(f"LLM: groq / {settings.GROQ_MODEL}")
+    print(f"limit={limit} sequential={sequential} fast_judge={fast} pipelines={pipelines}")
     run_id = run_id or datetime.now(timezone.utc).strftime("%Y%m%dT%H%M%S")
     jsonl = RESULTS_DIR / f"{run_id}.jsonl"
     jsonl.touch(exist_ok=True)
-    questions = load_questions(questions_path)
+
+    questions = _select_questions(load_questions(questions_path), limit)
+    print(f"questions selected: {[q['id'] + ':' + q['type'] for q in questions]}")
+
     store = _ensure_store()
     done = _done_keys(jsonl)
-    jobs = [(q, p) for q in questions for p in pipelines if (q["id"], p) not in done and p in RUNNERS]
+    jobs = [
+        (q, p)
+        for q in questions
+        for p in pipelines
+        if (q["id"], p) not in done and p in RUNNERS
+    ]
     if progress:
         progress({"event": "start", "run": run_id, "jobs": len(jobs), "questions": len(questions)})
 
     def emit(row):
         _append(jsonl, row)
+        tok = row.get("total_tokens", 0)
+        print(f"  [{row['pipeline']}] {row['id']} correct={row['correct']} tokens={tok}")
         if progress:
-            progress({"event": "row", "id": row["id"], "pipeline": row["pipeline"], "correct": row["correct"]})
+            progress(
+                {
+                    "event": "row",
+                    "id": row["id"],
+                    "pipeline": row["pipeline"],
+                    "correct": row["correct"],
+                    "total_tokens": tok,
+                }
+            )
 
-    with ThreadPoolExecutor(max_workers=3) as ex:
-        futs = {ex.submit(_run_one, q, p, store): (q, p) for q, p in jobs}
-        for fut in as_completed(futs):
-            emit(fut.result())
+    if sequential or fast:
+        # sequential = polite to Groq 8k TPM; also easier to debug
+        for q, p in jobs:
+            emit(_run_one(q, p, store, fast=fast))
+            if not fast:
+                time.sleep(1.2)  # ~stay under 8k TPM on free tier
+    else:
+        workers = 2  # never more than 2 on free tier
+        with ThreadPoolExecutor(max_workers=workers) as ex:
+            futs = {ex.submit(_run_one, q, p, store, fast=fast): (q, p) for q, p in jobs}
+            for fut in as_completed(futs):
+                emit(fut.result())
 
+    # Jev routed rows (no extra LLM — reuses pipeline answers already judged)
     rows = _load_rows(jsonl)
     by_q: dict[str, list] = {}
     for r in rows:
         if r["pipeline"] in RUNNERS:
             by_q.setdefault(r["id"], []).append(r)
-    qmap = {q["id"]: q for q in questions}
+
     for q in questions:
         if (q["id"], "routed") in _done_keys(jsonl):
             continue
@@ -263,23 +343,54 @@ def run_eval(
         emit(routed)
 
     rows = _load_rows(jsonl)
-    summary = {"run": run_id, "file": str(questions_path), "pipelines": pipelines, **summarize(rows)}
+    summary = {
+        "run": run_id,
+        "file": str(questions_path),
+        "pipelines": pipelines,
+        "limit": limit,
+        "fast_judge": fast,
+        **summarize(rows),
+    }
     (RESULTS_DIR / f"{run_id}_summary.json").write_text(json.dumps(summary, indent=2), encoding="utf-8")
     (RESULTS_DIR / "summary.json").write_text(json.dumps(summary, indent=2), encoding="utf-8")
     if progress:
         progress({"event": "done", "run": run_id, "summary": summary})
+    print("\n=== SUMMARY ===")
+    print(json.dumps(summary.get("pipelines", {}), indent=2))
     return summary
 
 
 def main():
     import argparse
 
-    p = argparse.ArgumentParser()
+    p = argparse.ArgumentParser(description="CanvasGraph eval (token-thrifty)")
     p.add_argument("file")
     p.add_argument("--pipelines", default="rag,graphrag,agentic")
     p.add_argument("--run", default=None)
+    p.add_argument("--limit", type=int, default=None, help="max questions (default: TEST_LIMIT from env/config)")
+    p.add_argument("--all", action="store_true", help="run every question (ignore TEST_LIMIT)")
+    p.add_argument("--sequential", action="store_true", default=True, help="one job at a time (default)")
+    p.add_argument("--parallel", action="store_true", help="use small thread pool")
+    p.add_argument("--fast", action="store_true", help="heuristic judge only — 0 judge tokens")
+    p.add_argument("--no-fast", action="store_true", help="force LLM judge")
     args = p.parse_args()
-    s = run_eval(args.file, [x.strip() for x in args.pipelines.split(",") if x.strip()], args.run)
+
+    limit = None if args.all else (args.limit if args.limit is not None else settings.TEST_LIMIT)
+    sequential = not args.parallel
+    fast = args.fast and not args.no_fast
+    # default to fast for small test runs unless user forces LLM judge
+    if not args.no_fast and not args.fast and (limit is not None and limit <= 4):
+        fast = True
+        print("auto --fast (limit<=4). Pass --no-fast for LLM judge.")
+
+    s = run_eval(
+        args.file,
+        [x.strip() for x in args.pipelines.split(",") if x.strip()],
+        args.run,
+        limit=limit,
+        sequential=sequential,
+        fast=fast,
+    )
     print(json.dumps(s, indent=2))
 
 
