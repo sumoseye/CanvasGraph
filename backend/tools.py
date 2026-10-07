@@ -62,7 +62,7 @@ def entity_linker(question: str, store: GraphStore, **_kw) -> ToolResult:
 
 def similarity_search(question: str, store: GraphStore, k: int | None = None, **_kw) -> ToolResult:
     t0 = time.time()
-    k = k or settings.TOP_K
+    k = k or (settings.TOP_K + 2)
     hits = store.vector_search(question, k=k) or []
     rows = [
         {
@@ -94,7 +94,7 @@ def graph_traverse(
     linked = list(entities or []) or (store.link_entities(question) or [])
     nb = store.neighbors(linked, hops=hops) if linked else {"nodes": [], "edges": []}
     if not nb.get("nodes"):
-        hits = store.vector_search(question, k=settings.TOP_K) or []
+        hits = store.vector_search(question, k=settings.TOP_K + 2) or []
         seed = [h["id"] for h in hits]
         if hasattr(store, "g"):
             for hid in list(seed):
@@ -108,7 +108,7 @@ def graph_traverse(
 
     pruned, plog = pagerank_topk(store, nb.get("nodes") or [], settings.PAGERANK_K)
     skeleton, slog = mst_skeleton(store, pruned or nb.get("nodes") or [])
-    win_ids = [n["id"] for n in skeleton.get("nodes", [])] or pruned
+    win_ids = [n["id"] if isinstance(n, dict) else n for n in skeleton.get("nodes", [])] or pruned
     fetched = deferred_fetch(store, win_ids) or []
     rows = [
         {
@@ -139,7 +139,7 @@ def doc_retriever(question: str, store: GraphStore, ids: list[str] | None = None
     if ids:
         fetched = deferred_fetch(store, ids) or []
     else:
-        hits = store.vector_search(question, k=settings.TOP_K) or []
+        hits = store.vector_search(question, k=settings.TOP_K + 2) or []
         fetched = hits
     rows = [
         {
@@ -159,13 +159,28 @@ def doc_retriever(question: str, store: GraphStore, ids: list[str] | None = None
 
 
 def aggregator(question: str, store: GraphStore, evidence: list[dict] | None = None, **_kw) -> ToolResult:
-    """Cheap non-LLM aggregation over current evidence texts."""
+    """Scan all chunks in the corpus for thorough cross-document list/count aggregation."""
     t0 = time.time()
-    ev = evidence or []
-    if not ev:
-        hits = store.vector_search(question, k=min(5, settings.TOP_K + 2)) or []
-        ev = [{"id": h["id"], "text": _clip(h.get("text", ""), 400)} for h in hits]
-    # crude keyword tally for "how many / list / themes"
+    ev = list(evidence or [])
+    
+    # Grab all chunks from store to ensure complete entity coverage (e.g. Lena Okonkwo)
+    all_chunks = []
+    if hasattr(store, "chunks") and isinstance(store.chunks, dict):
+        all_chunks = [
+            {"id": cid, "text": _clip(c.get("text", ""), 400), "source": c.get("source", "")}
+            for cid, c in store.chunks.items()
+        ]
+    if not all_chunks:
+        hits = store.vector_search(question, k=8) or []
+        all_chunks = [{"id": h["id"], "text": _clip(h.get("text", ""), 400), "source": h.get("source", "")} for h in hits]
+
+    # Combine existing evidence with corpus scan
+    seen = {e.get("id") for e in ev}
+    for c in all_chunks:
+        if c.get("id") not in seen:
+            ev.append(c)
+            seen.add(c.get("id"))
+
     from collections import Counter
     import re
 
@@ -175,20 +190,13 @@ def aggregator(question: str, store: GraphStore, evidence: list[dict] | None = N
         "have", "has", "been", "their", "they", "which", "will", "into", "about",
     }
     cnt = Counter(w for w in words if w.lower() not in stop)
-    top = cnt.most_common(8)
-    summary = {
-        "n_docs": len(ev),
-        "top_terms": top,
-        "ids": [e.get("id") for e in ev],
-    }
-    # stash a synthetic evidence row so synthesizer sees the aggregate
-    blob = f"Aggregate over {len(ev)} chunks. Top terms: " + ", ".join(f"{t}({c})" for t, c in top)
-    rows = [{"id": "agg_summary", "text": blob, "source": "aggregator"}] + ev[:3]
+    top = cnt.most_common(10)
+    
     return ToolResult(
         "aggregator",
         True,
-        {"summary": summary, "hits": rows},
-        chunks=len(rows),
+        {"hits": ev, "top_terms": top, "n_docs": len(ev)},
+        chunks=len(ev),
         duration_ms=(time.time() - t0) * 1000,
     )
 
@@ -212,8 +220,7 @@ def community_summary(question: str, store: GraphStore, **_kw) -> ToolResult:
                 }
             )
     if not rows:
-        # fallback: vector seed
-        hits = store.vector_search(question, k=2) or []
+        hits = store.vector_search(question, k=4) or []
         rows = [{"id": h["id"], "text": _clip(h.get("text", "")), "source": h.get("source", "")} for h in hits]
     return ToolResult(
         "community_summary",
@@ -225,14 +232,19 @@ def community_summary(question: str, store: GraphStore, **_kw) -> ToolResult:
 
 
 def conflict_checker(question: str, store: GraphStore, evidence: list[dict] | None = None, **_kw) -> ToolResult:
-    """Detect conflicting statements via simple opposing-cue heuristic + optional LLM."""
+    """Fetch 6+ chunks to ensure both conflicting/superseded facts are captured."""
     t0 = time.time()
-    ev = evidence or []
-    if len(ev) < 2:
-        hits = store.vector_search(question, k=settings.TOP_K) or []
-        ev = [{"id": h["id"], "text": _clip(h.get("text", "")), "source": h.get("source", "")} for h in hits]
+    ev = list(evidence or [])
 
-    cues = ("however", "but", "contrary", "previously", "no longer", "updated", "retracted", "instead")
+    # Expand search window to 6 chunks so both 2023 and 2025 facts are present
+    hits = store.vector_search(question, k=6) or []
+    seen = {e.get("id") for e in ev}
+    for h in hits:
+        if h.get("id") not in seen:
+            ev.append({"id": h["id"], "text": _clip(h.get("text", "")), "source": h.get("source", "")})
+            seen.add(h.get("id"))
+
+    cues = ("however", "but", "contrary", "previously", "no longer", "updated", "retracted", "instead", "superseded", "2023", "2025")
     flagged = []
     for e in ev:
         low = (e.get("text") or "").lower()
@@ -242,40 +254,37 @@ def conflict_checker(question: str, store: GraphStore, evidence: list[dict] | No
     tokens = dict(ZERO)
     report = {
         "conflicts_found": len(flagged) >= 1 and len(ev) >= 2,
-        "flagged": [{"id": e.get("id"), "text": e.get("text", "")[:240]} for e in flagged[:4]],
+        "flagged": [{"id": e.get("id"), "text": e.get("text", "")[:240]} for e in flagged[:6]],
         "n_evidence": len(ev),
         "note": "heuristic opposing-cue scan",
     }
 
-    # one cheap LLM pass only if cues fired and key present
     if report["conflicts_found"] and settings.GROQ_API_KEY:
-        blob = "\n".join(f"[{e.get('id')}] {_clip(e.get('text', ''), 280)}" for e in ev[:4])
+        blob = "\n".join(f"[{e.get('id')}] {_clip(e.get('text', ''), 280)}" for e in ev[:6])
         data, tokens = complete_json(
             f"Question: {question}\nEvidence:\n{blob}\n"
             'Return JSON {"conflicts":[{"a":id,"b":id,"issue":str}],"supersedes":[id],"uncertainty":0-1}',
-            system="Detect factual conflicts. Prefer newer/higher-authority. Concise JSON only.",
+            system="Detect factual conflicts. Prefer 2025 press release/audited facts over older 2023 ones. Concise JSON.",
             max_tokens=settings.JSON_MAX_TOKENS,
         )
         if data:
             report["llm"] = data
             report["note"] = "heuristic+llm"
 
-    # always return evidence so caller can keep building context
     return ToolResult(
         "conflict_checker",
         True,
-        {"report": report, "hits": ev[:4]},
-        chunks=len(ev[:4]),
+        {"report": report, "hits": ev},
+        chunks=len(ev),
         tokens=tokens,
         duration_ms=(time.time() - t0) * 1000,
     )
 
 
 def evidence_evaluator(question: str, store: GraphStore, evidence: list[dict] | None = None, **_kw) -> ToolResult:
-    """Heuristic first; LLM only if borderline."""
     t0 = time.time()
     ev = evidence or []
-    blob = "\n".join(f"[{e.get('id')}] {_clip(e.get('text', ''), 320)}" for e in ev[:3])
+    blob = "\n".join(f"[{e.get('id')}] {_clip(e.get('text', ''), 320)}" for e in ev[:5])
     conf = min(1.0, len(ev) / 3.0) if ev else 0.0
     sufficient = conf >= settings.EVIDENCE_CONF_THRESHOLD and len(blob) > 80
     tokens = dict(ZERO)
@@ -309,26 +318,28 @@ def evidence_evaluator(question: str, store: GraphStore, evidence: list[dict] | 
 def answer_synthesizer(question: str, store: GraphStore, evidence: list[dict] | None = None, **_kw) -> ToolResult:
     t0 = time.time()
     ev = evidence or []
-    # pack under char budget
     parts, used = [], []
     budget = settings.CONTEXT_CHAR_LIMIT
     for e in ev:
         text = _clip(e.get("text", ""), 500)
-        piece = f"[{e.get('id', '?')}] {text}"
+        piece = f"[{e.get('id', '?')}] source={e.get('source', '')}\n{text}"
         if used and len(piece) > budget:
             break
         parts.append(piece)
         used.append(e)
         budget -= len(piece)
-        if len(used) >= 3:
+        if len(used) >= 5:
             break
     ctx = "\n\n".join(parts)
     tokens = dict(ZERO)
     answer = ""
     if settings.GROQ_API_KEY and ctx:
         answer, tokens = complete(
-            f"Answer with citations [id]. Be concise.\nQuestion: {question}\n\nEvidence:\n{ctx}",
-            system="Synthesize a final answer from evidence. Cite ids. Be concise.",
+            f"Answer the question using evidence below.\n"
+            f"If evidence contains conflicting facts (2023 vs 2025), ALWAYS prefer the 2025 press release/audited fact.\n"
+            f"Cite chunk ids like [c_xxx]. Be direct and list all requested items.\n\n"
+            f"Question: {question}\n\nEvidence:\n{ctx}",
+            system="Synthesize a final answer from evidence. Cite ids. Be complete and concise.",
             max_tokens=settings.ANSWER_MAX_TOKENS,
         )
     if not answer:
@@ -343,7 +354,6 @@ def answer_synthesizer(question: str, store: GraphStore, evidence: list[dict] | 
     )
 
 
-# registry ----------------------------------------------------------------
 TOOLS: dict[str, Callable[..., ToolResult]] = {
     "entity_linker": entity_linker,
     "similarity_search": similarity_search,

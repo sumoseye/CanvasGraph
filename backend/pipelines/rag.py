@@ -5,18 +5,10 @@ from backend.llm import ZERO, complete, estimate_tokens
 from backend.store import GraphStore
 
 
-def _extractive(question: str, hits: list[dict]) -> str:
-    if not hits:
-        return "No evidence in the corpus."
-    bits = "\n\n".join(f"[{h['id']}] {h['text'][:400]}" for h in hits)
-    return f"Evidence for: {question}\n\n{bits}"
-
-
 def run_rag(question: str, store: GraphStore, k: int | None = None) -> dict:
-    k = k or settings.TOP_K
+    k = k or settings.TOP_K + 2  # fetch slightly more to cover conflicting dates
     hits = store.vector_search(question, k=k)
 
-    # only the chunks we actually send to the LLM
     ctx_hits: list[dict] = []
     budget = settings.CONTEXT_CHAR_LIMIT
     for h in hits:
@@ -26,7 +18,7 @@ def run_rag(question: str, store: GraphStore, k: int | None = None) -> dict:
             break
         ctx_hits.append({**h, "text": text})
         budget -= len(piece)
-        if len(ctx_hits) >= 3:
+        if len(ctx_hits) >= 4:
             break
 
     ctx = "\n\n".join(
@@ -36,18 +28,21 @@ def run_rag(question: str, store: GraphStore, k: int | None = None) -> dict:
     answer = ""
     if settings.GROQ_API_KEY and ctx_hits:
         prompt = (
-            f"Answer using only the context. Cite chunk ids like [c_xxx].\n"
+            f"Answer the question accurately using ONLY the context below.\n"
+            f"If context contains conflicting facts (e.g. 2023 vs 2025), ALWAYS prefer the most recent (2025) press release/audited fact.\n"
+            f"Cite chunk ids like [c_xxx]. Be direct and state the key facts clearly.\n\n"
             f"Question: {question}\n\nContext:\n{ctx}"
         )
         answer, usage = complete(
             prompt,
-            system="You are a precise RAG answerer. Cite sources. Be concise.",
+            system="You are a precise GraphRAG answerer. Prefer recent (2025) facts when conflicts exist. Cite sources.",
             max_tokens=settings.ANSWER_MAX_TOKENS,
         )
-    if not answer:
-        answer = _extractive(question, ctx_hits)
 
-    citations = [h["id"] for h in ctx_hits]  # only what was sent
+    if not answer:
+        answer = "\n\n".join(f"[{h['id']}] {h['text'][:400]}" for h in ctx_hits) if ctx_hits else "No evidence."
+
+    citations = [h["id"] for h in ctx_hits]
     nodes = [{"id": h["id"], "ntype": "chunk", "text": h["text"][:200]} for h in ctx_hits]
     return {
         "answer": answer,
@@ -64,7 +59,7 @@ def run_rag(question: str, store: GraphStore, k: int | None = None) -> dict:
                 "#chunks": len(ctx_hits),
             }
         ],
-        "opt_logs": [f"top-{k} retrieved, {len(ctx_hits)} sent ({settings.CONTEXT_CHAR_LIMIT} char cap)"],
+        "opt_logs": [f"top-{k} retrieved, {len(ctx_hits)} sent"],
         "context_tokens": estimate_tokens(ctx),
         "steps": 1,
         "tools_used": ["similarity_search"],

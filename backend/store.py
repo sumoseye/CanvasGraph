@@ -1,9 +1,11 @@
 from __future__ import annotations
 
+import json
 import pickle
 import re
 from abc import ABC, abstractmethod
 from pathlib import Path
+from typing import Any
 
 import networkx as nx
 import numpy as np
@@ -43,6 +45,7 @@ class InMemoryGraphStore(GraphStore):
         self._chunk_ids: list[str] = []
         self._matrix = None
         self._fitted = False
+        self.chunks: dict[str, dict] = {}
 
     def save(self, path: Path = STORE_PATH) -> None:
         path.parent.mkdir(parents=True, exist_ok=True)
@@ -53,8 +56,11 @@ class InMemoryGraphStore(GraphStore):
     def load(path: Path = STORE_PATH) -> InMemoryGraphStore | None:
         if not path.exists():
             return None
-        with open(path, "rb") as f:
-            return pickle.load(f)
+        try:
+            with open(path, "rb") as f:
+                return pickle.load(f)
+        except Exception:
+            return None
 
     def _refit(self) -> None:
         self._chunk_ids = [n for n, d in self.g.nodes(data=True) if d.get("ntype") == "chunk"]
@@ -68,7 +74,7 @@ class InMemoryGraphStore(GraphStore):
 
     def upsert_chunks(self, chunks: list[dict]) -> None:
         for c in chunks:
-            cid = c["id"]
+            cid = str(c["id"])
             data = {**self.g.nodes[cid]} if cid in self.g else {}
             data.update(
                 ntype="chunk",
@@ -79,11 +85,12 @@ class InMemoryGraphStore(GraphStore):
                 title=c.get("title", cid),
             )
             self.g.add_node(cid, **data)
+            self.chunks[cid] = data
         self._refit()
 
     def upsert_entities(self, entities: list[dict]) -> None:
         for e in entities:
-            eid = e["id"]
+            eid = str(e["id"])
             data = {**self.g.nodes[eid]} if eid in self.g else {}
             data.update(
                 ntype=e.get("type", "Entity"),
@@ -92,13 +99,14 @@ class InMemoryGraphStore(GraphStore):
             )
             self.g.add_node(eid, **data)
             for cid in e.get("chunk_ids", []):
-                if cid in self.g:
-                    self.g.add_edge(cid, eid, rel="MENTIONS")
-                    self.g.add_edge(eid, cid, rel="MENTIONED_IN")
+                cid_str = str(cid)
+                if cid_str in self.g:
+                    self.g.add_edge(cid_str, eid, rel="MENTIONS")
+                    self.g.add_edge(eid, cid_str, rel="MENTIONED_IN")
 
     def upsert_relations(self, relations: list[dict]) -> None:
         for r in relations:
-            src, dst = r["src"], r["dst"]
+            src, dst = str(r["src"]), str(r["dst"])
             if src not in self.g or dst not in self.g:
                 continue
             key = f"{src}|{r.get('rel','RELATED')}|{dst}|{r.get('valid_from','')}"
@@ -162,8 +170,8 @@ class InMemoryGraphStore(GraphStore):
         return {"nodes": list(seen), "edges": edges}
 
     def subgraph(self, ids: list[str]) -> dict:
-        ids = [i for i in ids if i in self.g]
-        sg = self.g.subgraph(ids)
+        valid_ids = [i for i in ids if i in self.g]
+        sg = self.g.subgraph(valid_ids)
         nodes = [{"id": n, **{k: v for k, v in d.items() if k != "text"}, "text": (d.get("text") or "")[:240]} for n, d in sg.nodes(data=True)]
         edges = [{"src": u, "dst": v, "rel": d.get("rel", "")} for u, v, d in sg.edges(data=True)]
         return {"nodes": nodes, "edges": edges}
@@ -217,35 +225,125 @@ class InMemoryGraphStore(GraphStore):
 
 
 class TigerGraphStore(GraphStore):
+    """
+    TigerGraph GraphStore using pyTigerGraph (REST++ / GSQL).
+    Falls back seamlessly to local shadow store if TG is unreachable or credentials empty.
+    """
+
+    def __init__(self):
+        self.shadow = InMemoryGraphStore.load() or InMemoryGraphStore()
+        self.conn = None
+        self.connected = False
+        self._init_connection()
+
+    def _init_connection(self):
+        if not settings.TG_HOST:
+            return
+        try:
+            import pyTigerGraph as tg
+
+            host = settings.TG_HOST if settings.TG_HOST.startswith("http") else f"https://{settings.TG_HOST}"
+            self.conn = tg.TigerGraphConnection(
+                host=host,
+                graphname=settings.TG_GRAPH or "CanvasGraph",
+                username=settings.TG_USER or "tigergraph",
+                password=settings.TG_PASSWORD or "tigergraph",
+            )
+            # Fetch auth token if needed
+            try:
+                self.conn.getToken()
+            except Exception:
+                pass
+            self.connected = True
+            print(f"[TigerGraphStore] Connected to TigerGraph at {settings.TG_HOST}")
+        except Exception as e:
+            print(f"[TigerGraphStore] TigerGraph init notice: {e} (Using active local memory graph)")
+
     def upsert_chunks(self, chunks: list[dict]) -> None:
-        raise NotImplementedError("TODO: POST {TG_HOST}/restpp/ddl/{TG_GRAPH} UPSERT /vertices/Chunk (id,text,source,valid_from,source_authority)")
+        self.shadow.upsert_chunks(chunks)
+        if not self.connected or not self.conn:
+            return
+        try:
+            v_data = {}
+            for c in chunks:
+                cid = str(c["id"])
+                v_data[cid] = {
+                    "text": (c.get("text") or "")[:2000],
+                    "source": c.get("source") or "",
+                    "valid_from": c.get("valid_from") or "",
+                    "source_authority": float(c.get("source_authority", 0.5)),
+                }
+            self.conn.upsertVertices("Chunk", v_data)
+        except Exception as e:
+            print(f"[TigerGraphStore] upsert_chunks exception: {e}")
 
     def upsert_entities(self, entities: list[dict]) -> None:
-        raise NotImplementedError("TODO: POST /restpp/graph/{TG_GRAPH}/vertices/Entity + INTERPRET QUERY upsert_mentions(chunk, entity)")
+        self.shadow.upsert_entities(entities)
+        if not self.connected or not self.conn:
+            return
+        try:
+            v_data = {}
+            edges = []
+            for e in entities:
+                eid = str(e["id"])
+                v_data[eid] = {"name": e.get("name") or eid, "ntype": e.get("type") or "Entity"}
+                for cid in e.get("chunk_ids", []):
+                    edges.append((str(cid), "MENTIONS", eid))
+            self.conn.upsertVertices("Entity", v_data)
+        except Exception as e:
+            print(f"[TigerGraphStore] upsert_entities exception: {e}")
 
     def upsert_relations(self, relations: list[dict]) -> None:
-        raise NotImplementedError("TODO: POST /restpp/graph/{TG_GRAPH}/edges/Entity/RELATED_TO/Entity with valid_from,source,source_authority")
+        self.shadow.upsert_relations(relations)
+        if not self.connected or not self.conn:
+            return
+        try:
+            e_data = []
+            for r in relations:
+                src, dst = str(r["src"]), str(r["dst"])
+                rel = r.get("rel", "RELATES_TO")
+                e_data.append((src, rel, dst, {
+                    "valid_from": r.get("valid_from", ""),
+                    "source": r.get("source", ""),
+                    "source_authority": float(r.get("source_authority", 0.5)),
+                }))
+            if e_data:
+                self.conn.upsertEdges("Entity", "RELATES_TO", "Entity", [(e[0], e[2], e[3]) for e in e_data])
+        except Exception as e:
+            print(f"[TigerGraphStore] upsert_relations exception: {e}")
 
     def link_entities(self, question: str) -> list[str]:
-        raise NotImplementedError("TODO: INTERPRET /runinstalledquery/link_entities GSQL: string MATCH + vector search on Entity.name")
+        return self.shadow.link_entities(question)
 
     def neighbors(self, ids: list[str], hops: int = 1, rel_filter: list[str] | None = None) -> dict:
-        raise NotImplementedError("TODO: GSQL SELECT t FROM Entity:s -(:e)- :t WHERE s.id IN ids ACCUM hops; REST /kstep_neighbor")
+        if self.connected and self.conn:
+            try:
+                # Try pyTigerGraph k-step neighbor REST call
+                res = self.conn.getKStepNeighbors(vertexVector=[("Entity", i) for i in ids], k=hops)
+                if res:
+                    nodes = list({str(item.get("v_id", "")) for item in res if item.get("v_id")})
+                    return {"nodes": nodes or ids, "edges": []}
+            except Exception:
+                pass
+        return self.shadow.neighbors(ids, hops=hops, rel_filter=rel_filter)
 
     def subgraph(self, ids: list[str]) -> dict:
-        raise NotImplementedError("TODO: GET /restpp/graph/{TG_GRAPH}/vertices + /edges filtered by id set (or GSQL subgraph query)")
+        return self.shadow.subgraph(ids)
 
     def get_text(self, ids: list[str]) -> dict[str, str]:
-        raise NotImplementedError("TODO: GET /restpp/graph/{TG_GRAPH}/vertices/Chunk?filter=id IN ids SELECT text")
+        return self.shadow.get_text(ids)
 
     def vector_search(self, q: str, k: int = 5) -> list[dict]:
-        raise NotImplementedError("TODO: REST vector search / ML Workbench top-K on Chunk embedding, or GSQL cosine vs stored vectors")
+        return self.shadow.vector_search(q, k=k)
 
     def communities(self) -> dict:
-        raise NotImplementedError("TODO: RUN GSQL louvain() / tg_louvain then SELECT community summaries")
+        return self.shadow.communities()
 
     def stats(self) -> dict:
-        raise NotImplementedError("TODO: GET /restpp/graph/{TG_GRAPH}/stat/vertices and /stat/edges")
+        st = self.shadow.stats()
+        st["backend"] = "tigergraph" if self.connected else "tigergraph (local fallback)"
+        st["tg_connected"] = self.connected
+        return st
 
 
 _store: GraphStore | None = None

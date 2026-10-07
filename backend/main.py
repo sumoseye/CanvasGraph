@@ -1,14 +1,17 @@
 import json
 import queue
+import tempfile
 from pathlib import Path
+from urllib.request import Request, urlopen
 
-from fastapi import FastAPI, HTTPException
+from fastapi import FastAPI, File, HTTPException, UploadFile
+from fastapi.middleware.cors import CORSMiddleware
 from fastapi.responses import StreamingResponse
 from pydantic import BaseModel, Field
 
-from backend.config import RESULTS_DIR, settings
+from backend.config import RESULTS_DIR, ROOT, settings
 from backend.evaluate import run_eval
-from backend.hidden import run_hidden
+from backend.hidden import run_hidden_evaluation as run_hidden
 from backend.ingest import ingest_path
 from backend.pipelines.agentic import run_agentic
 from backend.pipelines.graphrag import run_graphrag
@@ -17,25 +20,47 @@ from backend.router import default_router
 from backend.store import get_store
 
 app = FastAPI(title="CanvasGraph")
+app.add_middleware(
+    CORSMiddleware,
+    allow_origins=["*"],
+    allow_credentials=True,
+    allow_methods=["*"],
+    allow_headers=["*"],
+)
 
 
 class IngestBody(BaseModel):
     path: str = Field(..., description="Folder or file of txt/md/pdf/json")
 
 
+class IngestTextBody(BaseModel):
+    text: str
+    title: str = "pasted"
+
+
+class IngestUrlBody(BaseModel):
+    url: str
+
+
 class AskBody(BaseModel):
     question: str
-    mode: str = "rag"
+    mode: str = "auto"  # auto|rag|graphrag|agentic
 
 
 class BenchmarkBody(BaseModel):
-    file: str
+    file: str = "data/sample_questions.json"
     pipelines: list[str] | None = None
     run: str | None = None
+    limit: int | None = None
 
 
 class HiddenBody(BaseModel):
-    file: str
+    file: str = "data/sample_questions.json"
+
+
+@app.get("/health")
+def health():
+    return {"ok": True, "model": settings.GROQ_MODEL, "backend": settings.GRAPH_BACKEND}
 
 
 @app.post("/ingest")
@@ -43,10 +68,49 @@ def ingest(body: IngestBody):
     return ingest_path(body.path)
 
 
+@app.post("/ingest/text")
+def ingest_text(body: IngestTextBody):
+    d = ROOT / "data" / "uploads"
+    d.mkdir(parents=True, exist_ok=True)
+    safe = "".join(c if c.isalnum() or c in "-_" else "_" for c in body.title)[:40] or "pasted"
+    p = d / f"{safe}.txt"
+    p.write_text(body.text, encoding="utf-8")
+    return ingest_path(str(p))
+
+
+@app.post("/ingest/url")
+def ingest_url(body: IngestUrlBody):
+    try:
+        req = Request(body.url, headers={"User-Agent": "CanvasGraph/1.0"})
+        with urlopen(req, timeout=20) as resp:
+            raw = resp.read()
+        text = raw.decode("utf-8", errors="replace")
+    except Exception as e:
+        raise HTTPException(400, f"fetch failed: {e}") from e
+    d = ROOT / "data" / "uploads"
+    d.mkdir(parents=True, exist_ok=True)
+    name = body.url.rstrip("/").split("/")[-1][:40] or "url"
+    safe = "".join(c if c.isalnum() or c in "-_." else "_" for c in name)
+    if not safe.endswith((".txt", ".md", ".html", ".htm")):
+        safe += ".txt"
+    p = d / safe
+    p.write_text(text, encoding="utf-8")
+    return ingest_path(str(p))
+
+
+@app.post("/ingest/file")
+async def ingest_file(file: UploadFile = File(...)):
+    d = ROOT / "data" / "uploads"
+    d.mkdir(parents=True, exist_ok=True)
+    dest = d / (file.filename or "upload.txt")
+    dest.write_bytes(await file.read())
+    return ingest_path(str(dest))
+
+
 @app.post("/ask")
 def ask(body: AskBody):
     store = get_store()
-    mode = (body.mode or "rag").lower()
+    mode = (body.mode or "auto").lower()
     probs = default_router.predict(body.question)
     pick, _, rule = default_router.choose(body.question)
     if mode == "auto":
@@ -59,12 +123,68 @@ def ask(body: AskBody):
         out = run_rag(body.question, store)
     out["jev_probs"] = probs
     out["route_rule"] = rule
+    out["mode_requested"] = body.mode
+    out["mode_used"] = mode
     return out
 
 
 @app.get("/stats")
 def stats():
-    return {"settings": {"top_k": settings.TOP_K, "hops": settings.HOPS, "backend": settings.GRAPH_BACKEND, "model": settings.GROQ_MODEL}, **get_store().stats()}
+    return {
+        "settings": {
+            "top_k": settings.TOP_K,
+            "hops": settings.HOPS,
+            "backend": settings.GRAPH_BACKEND,
+            "model": settings.GROQ_MODEL,
+        },
+        **get_store().stats(),
+    }
+
+
+@app.get("/graph")
+def graph(limit: int = 250):
+    """Return nodes/edges for the force-graph canvas."""
+    store = get_store()
+    nodes: list[dict] = []
+    edges: list[dict] = []
+    seen: set[str] = set()
+
+    # Prefer NetworkX memory store
+    g = getattr(store, "g", None)
+    if g is not None:
+        # prioritize chunk + person + org nodes
+        ranked = list(g.nodes(data=True))
+        for nid, data in ranked[:limit]:
+            ntype = data.get("ntype") or data.get("type") or "Entity"
+            label = data.get("name") or data.get("label") or str(nid)
+            text = (data.get("text") or "")[:160]
+            nodes.append(
+                {
+                    "id": str(nid),
+                    "ntype": ntype,
+                    "label": label[:48],
+                    "text": text,
+                    "source": data.get("source", ""),
+                }
+            )
+            seen.add(str(nid))
+        for u, v, ed in g.edges(data=True):
+            if str(u) in seen and str(v) in seen:
+                edges.append(
+                    {
+                        "source": str(u),
+                        "target": str(v),
+                        "rel": ed.get("rel") or ed.get("type") or "RELATED",
+                    }
+                )
+            if len(edges) >= limit * 2:
+                break
+    else:
+        # fallback: empty shell from stats
+        st = store.stats()
+        nodes = [{"id": "empty", "ntype": "Document", "label": f"{st.get('chunks', 0)} chunks", "text": ""}]
+
+    return {"nodes": nodes, "edges": edges, "n_nodes": len(nodes), "n_edges": len(edges)}
 
 
 @app.post("/benchmark")
@@ -76,7 +196,15 @@ def benchmark(body: BenchmarkBody):
 
     def work():
         try:
-            run_eval(body.file, body.pipelines, body.run, progress=progress)
+            run_eval(
+                body.file,
+                body.pipelines,
+                body.run,
+                progress=progress,
+                limit=body.limit,
+                sequential=True,
+                fast=False,
+            )
         except Exception as e:
             q.put({"event": "error", "error": str(e)})
         finally:
@@ -100,16 +228,43 @@ def benchmark(body: BenchmarkBody):
 def results(run: str):
     jsonl = RESULTS_DIR / f"{run}.jsonl"
     summary = RESULTS_DIR / f"{run}_summary.json"
-    if run == "summary":
+    if run == "summary" or run == "latest":
         p = RESULTS_DIR / "summary.json"
         if not p.exists():
-            raise HTTPException(404)
-        return json.loads(p.read_text(encoding="utf-8"))
+            raise HTTPException(404, "no summary yet — run a benchmark first")
+        summ = json.loads(p.read_text(encoding="utf-8"))
+        # also try to load matching rows
+        run_id = summ.get("run", "")
+        rows = []
+        if run_id and (RESULTS_DIR / f"{run_id}.jsonl").exists():
+            rows = [
+                json.loads(l)
+                for l in (RESULTS_DIR / f"{run_id}.jsonl").read_text(encoding="utf-8").splitlines()
+                if l.strip()
+            ]
+        return {"run": run_id or "summary", "summary": summ, "rows": rows}
     if not jsonl.exists() and not summary.exists():
         raise HTTPException(404, f"no run {run}")
-    rows = [json.loads(l) for l in jsonl.read_text(encoding="utf-8").splitlines() if l.strip()] if jsonl.exists() else []
+    rows = (
+        [json.loads(l) for l in jsonl.read_text(encoding="utf-8").splitlines() if l.strip()]
+        if jsonl.exists()
+        else []
+    )
     summ = json.loads(summary.read_text(encoding="utf-8")) if summary.exists() else {}
     return {"run": run, "summary": summ, "rows": rows}
+
+
+@app.get("/results")
+def list_results():
+    files = sorted(RESULTS_DIR.glob("*_summary.json"), reverse=True)
+    out = []
+    for f in files[:20]:
+        try:
+            s = json.loads(f.read_text(encoding="utf-8"))
+            out.append({"run": s.get("run") or f.stem.replace("_summary", ""), "file": f.name})
+        except Exception:
+            out.append({"run": f.stem, "file": f.name})
+    return {"runs": out}
 
 
 @app.post("/hidden")

@@ -37,7 +37,6 @@ def _merge_hits(evidence: list[dict], hits: list[dict]) -> list[dict]:
 
 
 def _plan(question: str, step: int, evidence: list[dict], last_tool: str, gaps: list[str]) -> tuple[dict, dict]:
-    """LLM orchestrator — falls back to a deterministic plan if JSON fails / no key."""
     summary = f"n_evidence={len(evidence)} last_tool={last_tool or 'none'} gaps={gaps[:3]}"
     prompt = (
         f"Question: {question}\nStep: {step}/{settings.MAX_AGENT_STEPS}\nState: {summary}\n"
@@ -52,7 +51,6 @@ def _plan(question: str, step: int, evidence: list[dict], last_tool: str, gaps: 
         if data.get("tool") in TOOL_NAMES:
             return data, usage
 
-    # deterministic fallback (still produces a real multi-step trace)
     if step == 1 and not evidence:
         return {"tool": "similarity_search", "args": {}, "reason": "seed", "done": False}, dict(ZERO)
     if step == 1 or last_tool == "similarity_search":
@@ -79,7 +77,6 @@ def run_agentic(question: str, store: GraphStore) -> dict:
     original_q = question
 
     for step in range(1, settings.MAX_AGENT_STEPS + 1):
-        # 1) orchestrator decides
         plan, pu = _plan(original_q, step, evidence, last_tool, gaps)
         usage = _add(usage, pu)
         tool = plan.get("tool") or "answer_synthesizer"
@@ -103,8 +100,6 @@ def run_agentic(question: str, store: GraphStore) -> dict:
             }
         )
 
-        # 2) execute tool
-        # inject current evidence for tools that accept it
         call_kwargs = dict(args)
         call_kwargs["evidence"] = evidence
         if visited:
@@ -138,7 +133,6 @@ def run_agentic(question: str, store: GraphStore) -> dict:
         if tool == "evidence_evaluator":
             if data.get("sufficient"):
                 stop = "evidence_sufficient"
-                # final synthesize on next loop or immediately if last step
                 if step >= settings.MAX_AGENT_STEPS:
                     syn = run_tool("answer_synthesizer", original_q, store, evidence=evidence)
                     usage = _add(usage, syn.tokens)
@@ -149,11 +143,6 @@ def run_agentic(question: str, store: GraphStore) -> dict:
                     break
             else:
                 gaps = list(data.get("gaps") or gaps)
-                if gaps:
-                    # light gap injection for next retrieval
-                    original_q_gap = original_q  # keep original for final answer
-                    question = f"{original_q} {' '.join(gaps[:3])}"
-                    del original_q_gap
 
         if tool == "answer_synthesizer" or done_flag:
             answer = (data.get("answer") if tool == "answer_synthesizer" else "") or answer
@@ -162,10 +151,6 @@ def run_agentic(question: str, store: GraphStore) -> dict:
             stop = "agent_done" if done_flag else stop
             break
 
-        if step >= settings.MAX_AGENT_STEPS:
-            stop = "max_steps"
-
-    # guarantee an answer
     if not answer:
         syn = run_tool("answer_synthesizer", original_q, store, evidence=evidence)
         usage = _add(usage, syn.tokens)
@@ -173,27 +158,21 @@ def run_agentic(question: str, store: GraphStore) -> dict:
         trace.append(syn.as_trace(len(trace) + 1, {"forced_final": True}, False, stop))
         answer = (syn.data or {}).get("answer") or ""
         evidence = (syn.data or {}).get("used") or evidence
-        if not stop:
-            stop = "forced_synthesize"
 
-    # context string for token estimate / citations
     ctx_parts = []
     budget = settings.CONTEXT_CHAR_LIMIT
     used_ids = []
     for e in evidence:
         text = (e.get("text") or "")[:500]
-        piece = f"[{e.get('id')}] {text}"
+        piece = f"[{e.get('id')}] source={e.get('source', '')}\n{text}"
         if used_ids and len(piece) > budget:
             break
         ctx_parts.append(piece)
         used_ids.append(e.get("id"))
         budget -= len(piece)
-        if len(used_ids) >= 3:
+        if len(used_ids) >= 4:
             break
     ctx = "\n\n".join(ctx_parts)
-
-    if not answer:
-        answer = ctx[:2000] if ctx else "No evidence."
 
     sub = skeleton if skeleton.get("nodes") else (
         store.subgraph(visited[:30]) if visited else {"nodes": [], "edges": []}

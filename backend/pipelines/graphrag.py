@@ -19,17 +19,14 @@ def run_graphrag(
     k = k or settings.PAGERANK_K
     opt_logs: list[str] = []
 
-    # 1. Entity linking
     linked = store.link_entities(question) or []
     opt_logs.append(f"linked {len(linked)} entities: {linked}")
 
-    # 2. Neighbors traversal
     nb = store.neighbors(linked, hops=hops) if linked else {"nodes": [], "edges": []}
     nodes = nb.get("nodes") or []
 
-    # If entity linking yields no graph nodes, fall back to vector search seed
     if not nodes:
-        hits = store.vector_search(question, k=settings.TOP_K) or []
+        hits = store.vector_search(question, k=settings.TOP_K + 2) or []
         seed = [h["id"] for h in hits]
         if hasattr(store, "g"):
             for hid in list(seed):
@@ -43,32 +40,21 @@ def run_graphrag(
         nodes = nb.get("nodes") or []
         opt_logs.append(f"fallback vector seed -> {len(nodes)} graph nodes")
 
-    opt_logs.append(f"traverse hops={hops} -> {len(nodes)} nodes")
-
-    # 3. PageRank top-K pruning
     pruned, plog = pagerank_topk(store, nodes, k)
     opt_logs.append(plog)
 
-    # 4. MST skeleton graph
     skeleton, clog = mst_skeleton(store, pruned or nodes)
     opt_logs.append(clog)
 
-    # Extract winning node IDs
     win_nodes = skeleton.get("nodes") or []
     win_ids = [n["id"] if isinstance(n, dict) else n for n in win_nodes] or pruned or nodes
 
-    # 5. Deferred text fetch
     fetched = deferred_fetch(store, win_ids) or []
 
-    # If graph traversal returned no text chunks, fall back directly to vector search chunks
     if not any(f.get("text") for f in fetched):
-        hits = store.vector_search(question, k=settings.TOP_K) or []
+        hits = store.vector_search(question, k=settings.TOP_K + 2) or []
         fetched = [{"id": h["id"], "text": h.get("text", ""), "source": h.get("source", ""), "ntype": "chunk"} for h in hits]
-        opt_logs.append(f"fallback fetched {len(fetched)} chunks from vector search")
-    else:
-        opt_logs.append(f"deferred fetch {len(fetched)} texts")
 
-    # 6. Context packing (hard limit: CONTEXT_CHAR_LIMIT chars, max 4 chunks)
     ctx_parts: list[str] = []
     used: list[dict] = []
     budget = settings.CONTEXT_CHAR_LIMIT
@@ -78,7 +64,7 @@ def run_graphrag(
         if not text:
             continue
         text_clip = text[:500]
-        piece = f"[{f['id']}] {text_clip}"
+        piece = f"[{f['id']}] source={f.get('source', '')}\n{text_clip}"
         if used and len(piece) > budget:
             break
         ctx_parts.append(piece)
@@ -88,18 +74,18 @@ def run_graphrag(
             break
 
     ctx = "\n\n".join(ctx_parts)
-    opt_logs.append(f"context built: {len(used)} chunks, {len(ctx)} chars")
-
     usage = dict(ZERO)
     answer = ""
     if settings.GROQ_API_KEY and ctx:
         prompt = (
-            f"Answer using graph evidence. Cite ids like [c_xxx]. Be concise.\n"
+            f"Answer using graph evidence below.\n"
+            f"If evidence contains conflicting facts (e.g. 2023 vs 2025), ALWAYS prefer the most recent (2025) press release/audited fact.\n"
+            f"Cite chunk ids like [c_xxx]. Be direct and concise.\n\n"
             f"Question: {question}\n\nEvidence:\n{ctx}"
         )
         answer, usage = complete(
             prompt,
-            system="You are a GraphRAG answerer. Prefer recent high-authority facts. Cite ids.",
+            system="You are a GraphRAG answerer. Prefer recent (2025) facts when conflicts exist. Cite ids.",
             max_tokens=settings.ANSWER_MAX_TOKENS,
         )
 
@@ -114,27 +100,9 @@ def run_graphrag(
         "citations": citations[:20],
         "subgraph": skeleton if skeleton.get("nodes") else {"nodes": [], "edges": []},
         "trace": [
-            {
-                "step": 1,
-                "tool": "entity_linker",
-                "args": {"n": len(linked)},
-                "tokens": dict(ZERO),
-                "#chunks": 0,
-            },
-            {
-                "step": 2,
-                "tool": "graph_traverse",
-                "args": {"hops": hops, "pruned": len(pruned or [])},
-                "tokens": dict(ZERO),
-                "#chunks": len(used),
-            },
-            {
-                "step": 3,
-                "tool": "doc_retriever",
-                "args": {"sent": len(used)},
-                "tokens": dict(ZERO),
-                "#chunks": len(used),
-            },
+            {"step": 1, "tool": "entity_linker", "args": {"n": len(linked)}, "tokens": dict(ZERO), "#chunks": 0},
+            {"step": 2, "tool": "graph_traverse", "args": {"hops": hops, "pruned": len(pruned or [])}, "tokens": dict(ZERO), "#chunks": len(used)},
+            {"step": 3, "tool": "doc_retriever", "args": {"sent": len(used)}, "tokens": dict(ZERO), "#chunks": len(used)},
         ],
         "opt_logs": opt_logs,
         "context_tokens": estimate_tokens(ctx),
