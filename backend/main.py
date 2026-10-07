@@ -26,6 +26,13 @@ app.add_middleware(
     allow_methods=["*"],
     allow_headers=["*"],
 )
+@app.middleware("http")
+async def strip_api_prefix(request, call_next):
+    if request.url.path.startswith("/api/"):
+        request.scope["path"] = request.url.path[4:]
+    elif request.url.path == "/api":
+        request.scope["path"] = "/"
+    return await call_next(request)
 
 
 class IngestBody(BaseModel):
