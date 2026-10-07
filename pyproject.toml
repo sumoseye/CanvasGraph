@@ -1,2 +1,10 @@
-[tool.vercel]
-entrypoint = "main:app"
+[project]
+name = "my-vercel-app"
+version = "0.1.0"
+description = "My Python app on Vercel"
+requires-python = ">=3.12"
+dependencies = [
+    "fastapi",
+    "uvicorn",
+    # Add your other packages here
+]
