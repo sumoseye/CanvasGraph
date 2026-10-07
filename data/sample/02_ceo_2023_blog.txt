@@ -1,0 +1,6 @@
+title: Who runs Aether Labs
+date: 2023-03-12
+source: GraphWeekly blog
+authority: 0.35
+
+According to GraphWeekly, Maya Chen is the CEO of Aether Labs. Maya Chen previously led query optimization at LatticeDB. The blog says Maya Chen still signs all partnership letters and chairs the weekly product review in Austin.

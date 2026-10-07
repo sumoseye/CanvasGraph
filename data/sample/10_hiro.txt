@@ -1,0 +1,6 @@
+title: Hiro Tanaka
+date: 2024-04-11
+source: staff directory
+authority: 0.8
+
+Hiro Tanaka is co-founder of Aether Labs and tech lead for NovaGraph. Hiro Tanaka invented the MST skeleton pass that removes cycles after PageRank top-K pruning. He is based in Austin and works with Lena Okonkwo on shared vertex IDs between NovaGraph and PulseDB.

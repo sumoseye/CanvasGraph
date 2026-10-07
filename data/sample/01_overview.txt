@@ -1,0 +1,6 @@
+title: Aether Labs Overview
+date: 2024-02-01
+source: official handbook
+authority: 0.85
+
+Aether Labs is a graph systems company based in Austin, Texas. It was founded in 2019 by Maya Chen and Hiro Tanaka. The company builds NovaGraph, a distributed graph query engine, and PulseDB, a streaming store for temporal facts. Aether Labs employs 140 people. Its stated mission is to make multi-hop reasoning over changing facts cheap enough for production agents.

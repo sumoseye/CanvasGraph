@@ -1,0 +1,10 @@
+fastapi
+uvicorn
+networkx
+scikit-learn
+numpy
+pydantic
+python-dotenv
+openai
+tiktoken
+pypdf

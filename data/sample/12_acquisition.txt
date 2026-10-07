@@ -1,0 +1,6 @@
+title: Acquisition rumor
+date: 2025-03-02
+source: GraphWeekly blog
+authority: 0.3
+
+GraphWeekly claimed Northwind Systems was in talks to acquire Aether Labs. Raj Patel denied an acquisition in a customer letter. Rivermoor Capital said it would not sell its Series B stake. The rumor named NovaGraph as the asset Northwind Systems wanted.

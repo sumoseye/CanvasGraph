@@ -1,0 +1,6 @@
+title: Customers
+date: 2024-11-01
+source: sales brief
+authority: 0.7
+
+Aether Labs customers include Helix Health, Harbor Freight Insurance, and the Port of Austin. Harbor Freight Insurance uses NovaGraph for fraud rings. Port of Austin uses PulseDB for berth schedules. All three customers were signed before Raj Patel became CEO.

@@ -1,0 +1,6 @@
+title: Singapore office
+date: 2024-10-03
+source: official handbook
+authority: 0.85
+
+Aether Labs opened a Singapore office in September 2024. The Singapore office houses 18 engineers working on PulseDB regional replicas. Lena Okonkwo split time between Austin and Singapore after the opening. NovaGraph APAC customers query through the Singapore office.

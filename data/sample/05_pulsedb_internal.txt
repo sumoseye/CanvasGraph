@@ -1,0 +1,6 @@
+title: PulseDB internal memo
+date: 2024-06-01
+source: internal memo
+authority: 0.45
+
+Internal memo: PulseDB launched in May 2024. PulseDB is Aether Labs' streaming store for temporal facts. Lena Okonkwo owns PulseDB ingestion. The memo claims first production traffic was 2024-05-14 from customer Helix Health.

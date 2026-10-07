@@ -1,0 +1,6 @@
+title: PulseDB general availability
+date: 2024-11-20
+source: Reuters
+authority: 0.8
+
+Reuters reported that PulseDB launched in October 2024 when Aether Labs opened general availability. Reuters says Helix Health was a design partner but production traffic began 2024-10-02. PulseDB competes with streaming stores used by Northwind Systems.

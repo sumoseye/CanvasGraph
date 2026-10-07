@@ -1,0 +1,201 @@
+{
+  "run": "20261007T072817",
+  "file": "data/sample_questions.json",
+  "pipelines": {
+    "rag": {
+      "n": 12,
+      "accuracy": 1.0,
+      "avg_tokens": 0.0,
+      "accuracy_per_1k_tokens": 0.0,
+      "avg_latency_ms": 4.3,
+      "avg_completeness": 0.9822
+    },
+    "graphrag": {
+      "n": 12,
+      "accuracy": 1.0,
+      "avg_tokens": 0.0,
+      "accuracy_per_1k_tokens": 0.0,
+      "avg_latency_ms": 6.5,
+      "avg_completeness": 0.9642
+    },
+    "agentic": {
+      "n": 12,
+      "accuracy": 1.0,
+      "avg_tokens": 0.0,
+      "accuracy_per_1k_tokens": 0.0,
+      "avg_latency_ms": 10.7,
+      "avg_completeness": 0.9822
+    },
+    "routed": {
+      "n": 12,
+      "accuracy": 1.0,
+      "avg_tokens": 0.0,
+      "accuracy_per_1k_tokens": 0.0,
+      "avg_latency_ms": 8.8,
+      "avg_completeness": 0.9642
+    }
+  },
+  "breakdown_by_type": {
+    "aggregation": {
+      "rag": {
+        "n": 2,
+        "accuracy": 1.0,
+        "avg_tokens": 0.0,
+        "accuracy_per_1k_tokens": 0.0,
+        "avg_latency_ms": 1.5,
+        "avg_completeness": 1.0
+      },
+      "graphrag": {
+        "n": 2,
+        "accuracy": 1.0,
+        "avg_tokens": 0.0,
+        "accuracy_per_1k_tokens": 0.0,
+        "avg_latency_ms": 5.6,
+        "avg_completeness": 1.0
+      },
+      "agentic": {
+        "n": 2,
+        "accuracy": 1.0,
+        "avg_tokens": 0.0,
+        "accuracy_per_1k_tokens": 0.0,
+        "avg_latency_ms": 19.4,
+        "avg_completeness": 1.0
+      },
+      "routed": {
+        "n": 2,
+        "accuracy": 1.0,
+        "avg_tokens": 0.0,
+        "accuracy_per_1k_tokens": 0.0,
+        "avg_latency_ms": 17.7,
+        "avg_completeness": 1.0
+      }
+    },
+    "conflict": {
+      "rag": {
+        "n": 2,
+        "accuracy": 1.0,
+        "avg_tokens": 0.0,
+        "accuracy_per_1k_tokens": 0.0,
+        "avg_latency_ms": 3.5,
+        "avg_completeness": 0.893
+      },
+      "graphrag": {
+        "n": 2,
+        "accuracy": 1.0,
+        "avg_tokens": 0.0,
+        "accuracy_per_1k_tokens": 0.0,
+        "avg_latency_ms": 14.2,
+        "avg_completeness": 0.7855
+      },
+      "agentic": {
+        "n": 2,
+        "accuracy": 1.0,
+        "avg_tokens": 0.0,
+        "accuracy_per_1k_tokens": 0.0,
+        "avg_latency_ms": 16.8,
+        "avg_completeness": 0.893
+      },
+      "routed": {
+        "n": 2,
+        "accuracy": 1.0,
+        "avg_tokens": 0.0,
+        "accuracy_per_1k_tokens": 0.0,
+        "avg_latency_ms": 14.2,
+        "avg_completeness": 0.7855
+      }
+    },
+    "multi-hop": {
+      "rag": {
+        "n": 4,
+        "accuracy": 1.0,
+        "avg_tokens": 0.0,
+        "accuracy_per_1k_tokens": 0.0,
+        "avg_latency_ms": 5.1,
+        "avg_completeness": 1.0
+      },
+      "graphrag": {
+        "n": 4,
+        "accuracy": 1.0,
+        "avg_tokens": 0.0,
+        "accuracy_per_1k_tokens": 0.0,
+        "avg_latency_ms": 5.9,
+        "avg_completeness": 1.0
+      },
+      "agentic": {
+        "n": 4,
+        "accuracy": 1.0,
+        "avg_tokens": 0.0,
+        "accuracy_per_1k_tokens": 0.0,
+        "avg_latency_ms": 5.9,
+        "avg_completeness": 1.0
+      },
+      "routed": {
+        "n": 4,
+        "accuracy": 1.0,
+        "avg_tokens": 0.0,
+        "accuracy_per_1k_tokens": 0.0,
+        "avg_latency_ms": 5.9,
+        "avg_completeness": 1.0
+      }
+    },
+    "single-hop": {
+      "rag": {
+        "n": 4,
+        "accuracy": 1.0,
+        "avg_tokens": 0.0,
+        "accuracy_per_1k_tokens": 0.0,
+        "avg_latency_ms": 5.2,
+        "avg_completeness": 1.0
+      },
+      "graphrag": {
+        "n": 4,
+        "accuracy": 1.0,
+        "avg_tokens": 0.0,
+        "accuracy_per_1k_tokens": 0.0,
+        "avg_latency_ms": 3.9,
+        "avg_completeness": 1.0
+      },
+      "agentic": {
+        "n": 4,
+        "accuracy": 1.0,
+        "avg_tokens": 0.0,
+        "accuracy_per_1k_tokens": 0.0,
+        "avg_latency_ms": 8.0,
+        "avg_completeness": 1.0
+      },
+      "routed": {
+        "n": 4,
+        "accuracy": 1.0,
+        "avg_tokens": 0.0,
+        "accuracy_per_1k_tokens": 0.0,
+        "avg_latency_ms": 4.5,
+        "avg_completeness": 1.0
+      }
+    }
+  },
+  "when_agents_matter": {
+    "aggregation": "agentic_overkill",
+    "conflict": "agentic_overkill",
+    "multi-hop": "agentic_overkill",
+    "single-hop": "agentic_overkill"
+  },
+  "jev_routing_accuracy": 0.1667,
+  "routed_vs_always_agentic": {
+    "routed": {
+      "n": 12,
+      "accuracy": 1.0,
+      "avg_tokens": 0.0,
+      "accuracy_per_1k_tokens": 0.0,
+      "avg_latency_ms": 8.8,
+      "avg_completeness": 0.9642
+    },
+    "always_agentic": {
+      "n": 12,
+      "accuracy": 1.0,
+      "avg_tokens": 0.0,
+      "accuracy_per_1k_tokens": 0.0,
+      "avg_latency_ms": 10.7,
+      "avg_completeness": 0.9822
+    }
+  }
+}

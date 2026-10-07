@@ -1,0 +1,6 @@
+title: Helix Health partnership
+date: 2024-08-19
+source: official press
+authority: 0.88
+
+Aether Labs partnered with Helix Health to run NovaGraph over patient-transfer graphs. Helix Health is a hospital network in Texas. The partnership uses PulseDB to stream ward events into NovaGraph. Maya Chen announced the partnership while CEO.

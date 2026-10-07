@@ -1,0 +1,6 @@
+title: NovaGraph engine
+date: 2024-05-20
+source: product docs
+authority: 0.8
+
+NovaGraph is Aether Labs' distributed graph query engine. NovaGraph supports 2-hop traversals with PageRank pruning and MST cycle removal. Hiro Tanaka is the tech lead for NovaGraph. NovaGraph stores entities as vertices and facts as dated edges with a source_authority field. Customers run NovaGraph in Austin and Singapore.

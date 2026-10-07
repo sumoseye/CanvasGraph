@@ -1,0 +1,6 @@
+title: Temporal edges
+date: 2024-12-01
+source: product docs
+authority: 0.8
+
+Aether Labs models facts as temporal edges. Each edge stores valid_from, source, and source_authority. GraphRAG pipelines at Aether Labs do entity linking, 1-2 hop traversal, PageRank top-K prune, then MST skeleton, then deferred text fetch. This is the same pattern used inside NovaGraph's analyst notebook.

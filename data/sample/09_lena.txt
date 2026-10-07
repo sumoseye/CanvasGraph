@@ -1,0 +1,6 @@
+title: Lena Okonkwo research
+date: 2024-07-22
+source: research notes
+authority: 0.7
+
+Lena Okonkwo is Head of Temporal Systems at Aether Labs. She published a note on conflict resolution: when two facts disagree, prefer the later valid_from unless source_authority differs by more than 0.3. Lena Okonkwo reports to Maya Chen on research and to the CEO on shipping PulseDB.

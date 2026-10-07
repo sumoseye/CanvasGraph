@@ -1,0 +1,6 @@
+title: Board of directors
+date: 2025-01-10
+source: official handbook
+authority: 0.9
+
+The Aether Labs board includes Maya Chen as Executive Chair, Priya Shah from Rivermoor Capital, and Tom Alvarez from Oakline Ventures. Raj Patel sits on the board as CEO. The board meets in Austin. Priya Shah led the Series B.
