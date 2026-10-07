@@ -3,6 +3,7 @@ import {
   Bar,
   BarChart,
   CartesianGrid,
+  Cell,
   Legend,
   ResponsiveContainer,
   Scatter,
@@ -10,9 +11,8 @@ import {
   Tooltip,
   XAxis,
   YAxis,
-  Cell,
 } from "recharts";
-import { Loader2, Play, RefreshCw } from "lucide-react";
+import { Loader2, Play, RefreshCw, AlertCircle } from "lucide-react";
 import TraceViewer from "../components/TraceViewer";
 import { api } from "../api";
 import type { EvalRow, ResultsPayload, Summary } from "../types";
@@ -24,11 +24,18 @@ const PIPE_COLORS: Record<string, string> = {
   routed: "#D69E2E",
 };
 
+const DATASETS = [
+  { label: "eval_public.jsonl (official)", file: "data/questions/eval_public.jsonl" },
+  { label: "sample_questions.json (local)", file: "data/sample_questions.json" },
+];
+
 export default function Lab() {
   const [data, setData] = useState<ResultsPayload | null>(null);
   const [busy, setBusy] = useState(false);
   const [log, setLog] = useState<string[]>([]);
   const [limit, setLimit] = useState(6);
+  const [fastJudge, setFastJudge] = useState(true);
+  const [datasetFile, setDatasetFile] = useState(DATASETS[0].file);
   const [err, setErr] = useState("");
   const [selected, setSelected] = useState<EvalRow | null>(null);
   const [filterPipe, setFilterPipe] = useState<string>("all");
@@ -36,8 +43,11 @@ export default function Lab() {
   const load = () =>
     api
       .results("latest")
-      .then(setData)
-      .catch((e) => setErr(String(e)));
+      .then((res) => {
+        setData(res);
+        setErr("");
+      })
+      .catch((e) => setErr("No completed summary found. Click 'Run pipelines + Jev' to start."));
 
   useEffect(() => {
     load();
@@ -55,8 +65,6 @@ export default function Lab() {
       n: v.n,
     }));
   }, [summary]);
-
-  const tokData = accData;
 
   const scatterData = useMemo(
     () =>
@@ -84,7 +92,6 @@ export default function Lab() {
     (r) => filterPipe === "all" || r.pipeline === filterPipe,
   );
 
-  // side-by-side: pick one question id, show all pipelines
   const [sideId, setSideId] = useState<string>("");
   useEffect(() => {
     if (!sideId && rows.length) setSideId(rows[0].id);
@@ -94,22 +101,28 @@ export default function Lab() {
   const runBench = async () => {
     setBusy(true);
     setErr("");
-    setLog([]);
+    setLog(["Initializing benchmark runner..."]);
     try {
-      await api.benchmark({ limit, file: "data/sample_questions.json" }, (ev) => {
-        if (ev.event === "row") {
-          setLog((L) =>
-            [
-              `[${ev.pipeline}] ${ev.id} correct=${ev.correct} tok=${ev.total_tokens}`,
-              ...L,
-            ].slice(0, 40),
-          );
-        } else if (ev.event === "start") {
-          setLog((L) => [`start jobs=${ev.jobs}`, ...L]);
-        } else if (ev.event === "done") {
-          setLog((L) => [`done run=${(ev.summary as any)?.run}`, ...L]);
-        }
-      });
+      await api.benchmark(
+        { limit, file: datasetFile, fast: fastJudge } as any,
+        (ev) => {
+          if (ev.event === "row") {
+            setLog((L) =>
+              [
+                `[${ev.pipeline}] ${ev.id} correct=${ev.correct} tok=${ev.total_tokens}`,
+                ...L,
+              ].slice(0, 50),
+            );
+          } else if (ev.event === "start") {
+            setLog((L) => [`Started benchmark: ${ev.questions} questions, ${ev.jobs} jobs`, ...L]);
+          } else if (ev.event === "done") {
+            setLog((L) => [`Benchmark complete! Saved run ${ev.run}`, ...L]);
+          } else if (ev.event === "error") {
+            setLog((L) => [`Error: ${ev.error}`, ...L]);
+            setErr(String(ev.error));
+          }
+        },
+      );
       await load();
     } catch (e) {
       setErr(String(e));
@@ -118,20 +131,54 @@ export default function Lab() {
     }
   };
 
+  const hasData = accData.length > 0 && accData.some((d) => d.n > 0);
+
   return (
     <div className="h-full overflow-y-auto scrollbar-thin p-5 space-y-5">
-      {/* controls */}
+      {/* Controls Header */}
       <div className="flex flex-wrap items-center gap-3 glass rounded-xl p-3">
         <div>
           <div className="text-sm font-semibold">Benchmark Lab</div>
-          <div className="text-xs text-slate-400">
-            run={summary?.run || "—"} · Jev routing accuracy{" "}
-            <span className="text-accent font-mono">
-              {((summary?.jev_routing_accuracy || 0) * 100).toFixed(1)}%
+          <div className="text-xs text-slate-400 flex items-center gap-3">
+            <span>run={summary?.run || "—"}</span>
+            <span>
+              Jev routing <span className="text-accent font-mono font-bold">{((summary?.jev_routing_accuracy || 0) * 100).toFixed(1)}%</span>
             </span>
+            {summary?.breakdown_by_type?.conflict && (
+               <span className="border-l border-border pl-3">
+                 Agentic Conflict Accuracy <span className="text-rose-400 font-mono font-bold">{((summary.breakdown_by_type.conflict.agentic?.accuracy || 0) * 100).toFixed(1)}%</span> 
+                 <span className="text-slate-500"> (vs RAG {((summary.breakdown_by_type.conflict.rag?.accuracy || 0) * 100).toFixed(1)}%)</span>
+               </span>
+            )}
           </div>
         </div>
-        <div className="ml-auto flex items-center gap-2">
+
+        <div className="ml-auto flex flex-wrap items-center gap-2">
+          {/* Dataset Selector */}
+          <select
+            value={datasetFile}
+            onChange={(e) => setDatasetFile(e.target.value)}
+            className="text-xs bg-panel-2 border border-border rounded px-2 py-1 text-slate-200"
+          >
+            {DATASETS.map((d) => (
+              <option key={d.file} value={d.file}>
+                {d.label}
+              </option>
+            ))}
+          </select>
+
+          {/* Fast Judge Checkbox */}
+          <label className="text-xs text-slate-300 flex items-center gap-1 cursor-pointer bg-panel-2 px-2 py-1 rounded border border-border">
+            <input
+              type="checkbox"
+              checked={fastJudge}
+              onChange={(e) => setFastJudge(e.target.checked)}
+              className="accent-accent"
+            />
+            Fast Judge (0 LLM tokens)
+          </label>
+
+          {/* Limit input */}
           <label className="text-xs text-slate-400 flex items-center gap-1">
             limit
             <input
@@ -140,128 +187,132 @@ export default function Lab() {
               max={50}
               value={limit}
               onChange={(e) => setLimit(Number(e.target.value) || 6)}
-              className="w-14 bg-panel-2 border border-border rounded px-1 py-1 text-xs"
+              className="w-12 bg-panel-2 border border-border rounded px-1 py-1 text-xs text-center"
             />
           </label>
+
           <button
             onClick={load}
-            className="text-xs px-2 py-1.5 rounded border border-border hover:bg-panel-2 flex items-center gap-1"
+            className="text-xs px-2.5 py-1.5 rounded border border-border hover:bg-panel-2 flex items-center gap-1"
           >
-            <RefreshCw size={12} /> Reload summary.json
+            <RefreshCw size={12} /> Reload
           </button>
+
           <button
             disabled={busy}
             onClick={runBench}
-            className="text-xs px-3 py-1.5 rounded bg-accent text-white hover:bg-accent/90 disabled:opacity-50 flex items-center gap-1"
+            className="text-xs px-3.5 py-1.5 rounded bg-accent text-white font-medium hover:bg-accent/90 disabled:opacity-50 flex items-center gap-1 shadow-lg shadow-accent/20"
           >
             {busy ? <Loader2 size={12} className="animate-spin" /> : <Play size={12} />}
             Run pipelines + Jev
           </button>
         </div>
       </div>
-      {err && <p className="text-sm text-rose-400">{err}</p>}
 
-      {/* charts */}
+      {err && (
+        <div className="flex items-center gap-2 text-xs text-amber-300 bg-amber-500/10 border border-amber-500/20 rounded-lg p-2.5">
+          <AlertCircle size={14} className="shrink-0" />
+          <span>{err}</span>
+        </div>
+      )}
+
+      {/* Recharts Grid */}
       <div className="grid lg:grid-cols-2 gap-4">
         <ChartCard title="Accuracy by pipeline">
-          <ResponsiveContainer width="100%" height={220}>
-            <BarChart data={accData}>
-              <CartesianGrid strokeDasharray="3 3" stroke="#2a3548" />
-              <XAxis dataKey="name" stroke="#94a3b8" fontSize={11} />
-              <YAxis stroke="#94a3b8" fontSize={11} unit="%" />
-              <Tooltip contentStyle={{ background: "#121826", border: "1px solid #2a3548" }} />
-              <Bar dataKey="accuracy" radius={[4, 4, 0, 0]}>
-                {accData.map((d) => (
-                  <Cell key={d.name} fill={PIPE_COLORS[d.name] || "#6c8cff"} />
-                ))}
-              </Bar>
-            </BarChart>
-          </ResponsiveContainer>
+          {hasData ? (
+            <ResponsiveContainer width="100%" height={220}>
+              <BarChart data={accData}>
+                <CartesianGrid strokeDasharray="3 3" stroke="#2a3548" />
+                <XAxis dataKey="name" stroke="#94a3b8" fontSize={11} />
+                <YAxis stroke="#94a3b8" fontSize={11} unit="%" domain={[0, 100]} />
+                <Tooltip contentStyle={{ background: "#121826", border: "1px solid #2a3548" }} />
+                <Bar dataKey="accuracy" radius={[4, 4, 0, 0]}>
+                  {accData.map((d) => (
+                    <Cell key={d.name} fill={PIPE_COLORS[d.name] || "#6c8cff"} />
+                  ))}
+                </Bar>
+              </BarChart>
+            </ResponsiveContainer>
+          ) : (
+            <EmptyChartState />
+          )}
         </ChartCard>
 
         <ChartCard title="Tokens by pipeline">
-          <ResponsiveContainer width="100%" height={220}>
-            <BarChart data={tokData}>
-              <CartesianGrid strokeDasharray="3 3" stroke="#2a3548" />
-              <XAxis dataKey="name" stroke="#94a3b8" fontSize={11} />
-              <YAxis stroke="#94a3b8" fontSize={11} />
-              <Tooltip contentStyle={{ background: "#121826", border: "1px solid #2a3548" }} />
-              <Bar dataKey="tokens" radius={[4, 4, 0, 0]}>
-                {tokData.map((d) => (
-                  <Cell key={d.name} fill={PIPE_COLORS[d.name] || "#6c8cff"} />
-                ))}
-              </Bar>
-            </BarChart>
-          </ResponsiveContainer>
+          {hasData ? (
+            <ResponsiveContainer width="100%" height={220}>
+              <BarChart data={accData}>
+                <CartesianGrid strokeDasharray="3 3" stroke="#2a3548" />
+                <XAxis dataKey="name" stroke="#94a3b8" fontSize={11} />
+                <YAxis stroke="#94a3b8" fontSize={11} />
+                <Tooltip contentStyle={{ background: "#121826", border: "1px solid #2a3548" }} />
+                <Bar dataKey="tokens" radius={[4, 4, 0, 0]}>
+                  {accData.map((d) => (
+                    <Cell key={d.name} fill={PIPE_COLORS[d.name] || "#6c8cff"} />
+                  ))}
+                </Bar>
+              </BarChart>
+            </ResponsiveContainer>
+          ) : (
+            <EmptyChartState />
+          )}
         </ChartCard>
 
         <ChartCard title="Accuracy vs tokens">
-          <ResponsiveContainer width="100%" height={220}>
-            <ScatterChart>
-              <CartesianGrid strokeDasharray="3 3" stroke="#2a3548" />
-              <XAxis
-                dataKey="x"
-                name="tokens"
-                stroke="#94a3b8"
-                fontSize={11}
-                label={{ value: "avg tokens", position: "insideBottom", offset: -2, fill: "#64748b" }}
-              />
-              <YAxis
-                dataKey="y"
-                name="accuracy"
-                stroke="#94a3b8"
-                fontSize={11}
-                unit="%"
-              />
-              <Tooltip
-                cursor={{ strokeDasharray: "3 3" }}
-                contentStyle={{ background: "#121826", border: "1px solid #2a3548" }}
-                formatter={(v: any, name: string) => [v, name]}
-                labelFormatter={() => ""}
-              />
-              <Scatter data={scatterData}>
-                {scatterData.map((d) => (
-                  <Cell key={d.name} fill={PIPE_COLORS[d.name] || "#6c8cff"} />
-                ))}
-              </Scatter>
-            </ScatterChart>
-          </ResponsiveContainer>
+          {hasData ? (
+            <ResponsiveContainer width="100%" height={220}>
+              <ScatterChart>
+                <CartesianGrid strokeDasharray="3 3" stroke="#2a3548" />
+                <XAxis
+                  dataKey="x"
+                  name="tokens"
+                  stroke="#94a3b8"
+                  fontSize={11}
+                  label={{ value: "avg tokens", position: "insideBottom", offset: -2, fill: "#64748b" }}
+                />
+                <YAxis dataKey="y" name="accuracy" stroke="#94a3b8" fontSize={11} unit="%" domain={[0, 100]} />
+                <Tooltip
+                  cursor={{ strokeDasharray: "3 3" }}
+                  contentStyle={{ background: "#121826", border: "1px solid #2a3548" }}
+                />
+                <Scatter data={scatterData}>
+                  {scatterData.map((d) => (
+                    <Cell key={d.name} fill={PIPE_COLORS[d.name] || "#6c8cff"} />
+                  ))}
+                </Scatter>
+              </ScatterChart>
+            </ResponsiveContainer>
+          ) : (
+            <EmptyChartState />
+          )}
         </ChartCard>
 
         <ChartCard title='Accuracy by question type — "when agents matter"'>
-          <ResponsiveContainer width="100%" height={220}>
-            <BarChart data={byTypeData}>
-              <CartesianGrid strokeDasharray="3 3" stroke="#2a3548" />
-              <XAxis dataKey="type" stroke="#94a3b8" fontSize={11} />
-              <YAxis stroke="#94a3b8" fontSize={11} unit="%" />
-              <Tooltip contentStyle={{ background: "#121826", border: "1px solid #2a3548" }} />
-              <Legend wrapperStyle={{ fontSize: 11 }} />
-              <Bar dataKey="rag" fill={PIPE_COLORS.rag} />
-              <Bar dataKey="graphrag" fill={PIPE_COLORS.graphrag} />
-              <Bar dataKey="agentic" fill={PIPE_COLORS.agentic} />
-            </BarChart>
-          </ResponsiveContainer>
-          {summary?.when_agents_matter && (
-            <div className="px-3 pb-2 flex flex-wrap gap-2">
-              {Object.entries(summary.when_agents_matter).map(([t, v]) => (
-                <span
-                  key={t}
-                  className="text-[10px] px-2 py-0.5 rounded-full bg-panel-2 border border-border text-slate-300"
-                >
-                  {t}: <span className="text-accent">{v}</span>
-                </span>
-              ))}
-            </div>
+          {hasData ? (
+            <ResponsiveContainer width="100%" height={220}>
+              <BarChart data={byTypeData}>
+                <CartesianGrid strokeDasharray="3 3" stroke="#2a3548" />
+                <XAxis dataKey="type" stroke="#94a3b8" fontSize={11} />
+                <YAxis stroke="#94a3b8" fontSize={11} unit="%" domain={[0, 100]} />
+                <Tooltip contentStyle={{ background: "#121826", border: "1px solid #2a3548" }} />
+                <Legend wrapperStyle={{ fontSize: 11 }} />
+                <Bar dataKey="rag" fill={PIPE_COLORS.rag} radius={[2, 2, 0, 0]} />
+                <Bar dataKey="graphrag" fill={PIPE_COLORS.graphrag} radius={[2, 2, 0, 0]} />
+                <Bar dataKey="agentic" fill={PIPE_COLORS.agentic} radius={[2, 2, 0, 0]} />
+              </BarChart>
+            </ResponsiveContainer>
+          ) : (
+            <EmptyChartState />
           )}
         </ChartCard>
       </div>
 
-      {/* side by side answers */}
+      {/* Side by side answers */}
       <div className="glass rounded-xl p-4">
         <div className="flex items-center gap-2 mb-3">
           <h2 className="text-sm font-semibold">Side-by-side answers</h2>
           <select
-            className="ml-auto text-xs bg-panel-2 border border-border rounded px-2 py-1"
+            className="ml-auto text-xs bg-panel-2 border border-border rounded px-2 py-1 text-slate-200"
             value={sideId}
             onChange={(e) => setSideId(e.target.value)}
           >
@@ -277,34 +328,37 @@ export default function Lab() {
             <div
               key={r.pipeline}
               className={`rounded-lg border p-3 bg-panel-2 ${
-                r.correct ? "border-emerald-500/40" : "border-border"
+                r.correct ? "border-emerald-500/40" : "border-rose-500/30"
               }`}
             >
               <div className="flex text-xs mb-1">
-                <span className="font-medium" style={{ color: PIPE_COLORS[r.pipeline] }}>
+                <span className="font-medium capitalize" style={{ color: PIPE_COLORS[r.pipeline] }}>
                   {r.pipeline}
                 </span>
-                <span className="ml-auto">{r.correct ? "PASS" : "FAIL"}</span>
+                <span className={`ml-auto font-mono ${r.correct ? "text-emerald-400" : "text-rose-400"}`}>
+                  {r.correct ? "PASS" : "FAIL"}
+                </span>
               </div>
               <p className="text-xs text-slate-300 line-clamp-6 whitespace-pre-wrap">{r.answer}</p>
-              <div className="text-[10px] text-slate-500 mt-2 font-mono">
-                {r.total_tokens} tok · {r.latency_ms} ms
+              <div className="text-[10px] text-slate-500 mt-2 font-mono flex gap-3">
+                <span>{r.total_tokens} tok</span>
+                <span>{r.latency_ms} ms</span>
               </div>
             </div>
           ))}
           {!sideRows.length && (
-            <p className="text-xs text-slate-500">No rows — run a benchmark or reload summary.</p>
+            <p className="text-xs text-slate-500">No answer rows available. Run a benchmark above.</p>
           )}
         </div>
       </div>
 
-      {/* results table + trace */}
+      {/* Results table + Trace */}
       <div className="grid lg:grid-cols-5 gap-4">
         <div className="lg:col-span-3 glass rounded-xl overflow-hidden">
           <div className="flex items-center gap-2 px-3 py-2 border-b border-border">
-            <h2 className="text-sm font-semibold">Results</h2>
+            <h2 className="text-sm font-semibold">Results ({filteredRows.length})</h2>
             <select
-              className="ml-auto text-xs bg-panel-2 border border-border rounded px-2 py-1"
+              className="ml-auto text-xs bg-panel-2 border border-border rounded px-2 py-1 text-slate-200"
               value={filterPipe}
               onChange={(e) => setFilterPipe(e.target.value)}
             >
@@ -337,14 +391,16 @@ export default function Lab() {
                       selected === r ? "bg-accent/10" : ""
                     }`}
                   >
-                    <td className="p-2 font-mono">{r.id}</td>
-                    <td className="p-2">{r.type}</td>
-                    <td className="p-2" style={{ color: PIPE_COLORS[r.pipeline] }}>
+                    <td className="p-2 font-mono text-slate-300">{r.id}</td>
+                    <td className="p-2 text-slate-400">{r.type}</td>
+                    <td className="p-2 font-medium" style={{ color: PIPE_COLORS[r.pipeline] }}>
                       {r.pipeline}
                     </td>
-                    <td className="p-2">{r.correct ? "✓" : "✗"}</td>
-                    <td className="p-2 text-right font-mono">{r.total_tokens}</td>
-                    <td className="p-2 text-right font-mono">{r.latency_ms}</td>
+                    <td className={`p-2 ${r.correct ? "text-emerald-400" : "text-rose-400"}`}>
+                      {r.correct ? "✓" : "✗"}
+                    </td>
+                    <td className="p-2 text-right font-mono text-slate-400">{r.total_tokens}</td>
+                    <td className="p-2 text-right font-mono text-slate-400">{r.latency_ms}</td>
                   </tr>
                 ))}
               </tbody>
@@ -364,25 +420,18 @@ export default function Lab() {
               </p>
               <p className="text-[11px] text-slate-500">{selected.reason}</p>
               <TraceViewer trace={selected.trace} />
-              {!!selected.opt_logs?.length && (
-                <ul className="text-[10px] font-mono text-slate-500">
-                  {selected.opt_logs.map((l, i) => (
-                    <li key={i}>· {l}</li>
-                  ))}
-                </ul>
-              )}
             </div>
           ) : (
-            <p className="text-xs text-slate-500">Select a result row to inspect its agent trace.</p>
+            <p className="text-xs text-slate-500">Select a row from the table to inspect its agent trace.</p>
           )}
         </div>
       </div>
 
-      {/* live log */}
+      {/* Run Log */}
       {!!log.length && (
         <div className="glass rounded-xl p-3">
-          <h2 className="text-sm font-semibold mb-2">Run log</h2>
-          <pre className="text-[11px] font-mono text-slate-400 max-h-40 overflow-auto scrollbar-thin">
+          <h2 className="text-sm font-semibold mb-2">Live Execution Log</h2>
+          <pre className="text-[11px] font-mono text-slate-400 max-h-40 overflow-auto scrollbar-thin leading-relaxed">
             {log.join("\n")}
           </pre>
         </div>
@@ -396,6 +445,14 @@ function ChartCard({ title, children }: { title: string; children: React.ReactNo
     <div className="glass rounded-xl overflow-hidden">
       <div className="px-3 py-2 border-b border-border text-sm font-medium">{title}</div>
       <div className="p-2">{children}</div>
+    </div>
+  );
+}
+
+function EmptyChartState() {
+  return (
+    <div className="h-[220px] flex items-center justify-center text-xs text-slate-500">
+      Click "Run pipelines + Jev" above to populate benchmark charts.
     </div>
   );
 }

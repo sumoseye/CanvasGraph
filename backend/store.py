@@ -1,11 +1,9 @@
 from __future__ import annotations
 
-import json
 import pickle
 import re
 from abc import ABC, abstractmethod
 from pathlib import Path
-from typing import Any
 
 import networkx as nx
 import numpy as np
@@ -13,6 +11,14 @@ from sklearn.feature_extraction.text import TfidfVectorizer
 from sklearn.metrics.pairwise import cosine_similarity
 
 from backend.config import STORE_PATH, settings
+
+
+def _safe_str(v) -> str:
+    if v is None:
+        return ""
+    if isinstance(v, list):
+        return " ".join(_safe_str(x) for x in v)
+    return str(v)
 
 
 class GraphStore(ABC):
@@ -64,7 +70,7 @@ class InMemoryGraphStore(GraphStore):
 
     def _refit(self) -> None:
         self._chunk_ids = [n for n, d in self.g.nodes(data=True) if d.get("ntype") == "chunk"]
-        texts = [self.g.nodes[i].get("text", "") for i in self._chunk_ids]
+        texts = [_safe_str(self.g.nodes[i].get("text", "")) for i in self._chunk_ids]
         if texts:
             self._matrix = self.vectorizer.fit_transform(texts)
             self._fitted = True
@@ -74,62 +80,68 @@ class InMemoryGraphStore(GraphStore):
 
     def upsert_chunks(self, chunks: list[dict]) -> None:
         for c in chunks:
-            cid = str(c["id"])
+            cid = _safe_str(c["id"])
             data = {**self.g.nodes[cid]} if cid in self.g else {}
             data.update(
                 ntype="chunk",
-                text=c.get("text", ""),
-                source=c.get("source", ""),
-                source_authority=c.get("source_authority", 0.5),
-                valid_from=c.get("valid_from", ""),
-                title=c.get("title", cid),
+                text=_safe_str(c.get("text", "")),
+                source=_safe_str(c.get("source", "")),
+                source_authority=float(c.get("source_authority", 0.5)),
+                valid_from=_safe_str(c.get("valid_from", "")),
+                title=_safe_str(c.get("title", cid)),
             )
             self.g.add_node(cid, **data)
             self.chunks[cid] = data
         self._refit()
+        self.save()
 
     def upsert_entities(self, entities: list[dict]) -> None:
         for e in entities:
-            eid = str(e["id"])
+            eid = _safe_str(e["id"])
             data = {**self.g.nodes[eid]} if eid in self.g else {}
+            ename = _safe_str(e.get("name") or eid)
             data.update(
-                ntype=e.get("type", "Entity"),
-                name=e.get("name", eid),
-                text=e.get("name", eid),
+                ntype=_safe_str(e.get("type", "Entity")),
+                name=ename,
+                text=ename,
             )
             self.g.add_node(eid, **data)
             for cid in e.get("chunk_ids", []):
-                cid_str = str(cid)
+                cid_str = _safe_str(cid)
                 if cid_str in self.g:
                     self.g.add_edge(cid_str, eid, rel="MENTIONS")
                     self.g.add_edge(eid, cid_str, rel="MENTIONED_IN")
+        self.save()
 
     def upsert_relations(self, relations: list[dict]) -> None:
         for r in relations:
-            src, dst = str(r["src"]), str(r["dst"])
+            src, dst = _safe_str(r["src"]), _safe_str(r["dst"])
             if src not in self.g or dst not in self.g:
                 continue
-            key = f"{src}|{r.get('rel','RELATED')}|{dst}|{r.get('valid_from','')}"
+            rel = _safe_str(r.get("rel", "RELATED"))
+            vf = _safe_str(r.get("valid_from", ""))
+            key = f"{src}|{rel}|{dst}|{vf}"
             self.g.add_edge(
                 src,
                 dst,
                 key=key,
-                rel=r.get("rel", "RELATED"),
-                valid_from=r.get("valid_from", ""),
-                source=r.get("source", ""),
+                rel=rel,
+                valid_from=vf,
+                source=_safe_str(r.get("source", "")),
                 source_authority=float(r.get("source_authority", 0.5)),
-                fact_id=r.get("id", key),
+                fact_id=_safe_str(r.get("id", key)),
             )
+        self.save()
 
     def link_entities(self, question: str) -> list[str]:
-        q = question.lower()
+        q = _safe_str(question).lower()
         scored = []
         for n, d in self.g.nodes(data=True):
             if d.get("ntype") in ("chunk", None) and "name" not in d:
                 continue
             if d.get("ntype") == "chunk":
                 continue
-            name = (d.get("name") or n).lower()
+            name = _safe_str(d.get("name") or n).lower()
             if name and name in q:
                 scored.append((3.0 + len(name.split()), n))
                 continue
@@ -172,7 +184,7 @@ class InMemoryGraphStore(GraphStore):
     def subgraph(self, ids: list[str]) -> dict:
         valid_ids = [i for i in ids if i in self.g]
         sg = self.g.subgraph(valid_ids)
-        nodes = [{"id": n, **{k: v for k, v in d.items() if k != "text"}, "text": (d.get("text") or "")[:240]} for n, d in sg.nodes(data=True)]
+        nodes = [{"id": n, **{k: v for k, v in d.items() if k != "text"}, "text": _safe_str(d.get("text") or "")[:240]} for n, d in sg.nodes(data=True)]
         edges = [{"src": u, "dst": v, "rel": d.get("rel", "")} for u, v, d in sg.edges(data=True)]
         return {"nodes": nodes, "edges": edges}
 
@@ -180,20 +192,20 @@ class InMemoryGraphStore(GraphStore):
         out = {}
         for i in ids:
             if i in self.g:
-                out[i] = self.g.nodes[i].get("text") or self.g.nodes[i].get("name") or ""
+                out[i] = _safe_str(self.g.nodes[i].get("text") or self.g.nodes[i].get("name") or "")
         return out
 
     def vector_search(self, q: str, k: int = 5) -> list[dict]:
         if not self._fitted or self._matrix is None or not self._chunk_ids:
             return []
-        qv = self.vectorizer.transform([q])
+        qv = self.vectorizer.transform([_safe_str(q)])
         sims = cosine_similarity(qv, self._matrix).ravel()
         idx = np.argsort(-sims)[:k]
         hits = []
         for i in idx:
             cid = self._chunk_ids[int(i)]
             d = self.g.nodes[cid]
-            hits.append({"id": cid, "score": float(sims[i]), "text": d.get("text", ""), "source": d.get("source", "")})
+            hits.append({"id": cid, "score": float(sims[i]), "text": _safe_str(d.get("text", "")), "source": _safe_str(d.get("source", ""))})
         return hits
 
     def communities(self) -> dict:
@@ -206,7 +218,7 @@ class InMemoryGraphStore(GraphStore):
             comms = list(nx_comm.greedy_modularity_communities(und)) if und.number_of_nodes() else []
         out = []
         for i, c in enumerate(comms):
-            names = [self.g.nodes[n].get("name") or n for n in c if self.g.nodes[n].get("ntype") != "chunk"]
+            names = [_safe_str(self.g.nodes[n].get("name") or n) for n in c if self.g.nodes[n].get("ntype") != "chunk"]
             out.append({"id": f"c{i}", "nodes": list(c), "summary": ", ".join(names[:8]) or f"community {i}"})
         return {"communities": out}
 
@@ -225,11 +237,6 @@ class InMemoryGraphStore(GraphStore):
 
 
 class TigerGraphStore(GraphStore):
-    """
-    TigerGraph GraphStore using pyTigerGraph (REST++ / GSQL).
-    Falls back seamlessly to local shadow store if TG is unreachable or credentials empty.
-    """
-
     def __init__(self):
         self.shadow = InMemoryGraphStore.load() or InMemoryGraphStore()
         self.conn = None
@@ -249,7 +256,6 @@ class TigerGraphStore(GraphStore):
                 username=settings.TG_USER or "tigergraph",
                 password=settings.TG_PASSWORD or "tigergraph",
             )
-            # Fetch auth token if needed
             try:
                 self.conn.getToken()
             except Exception:
@@ -257,20 +263,21 @@ class TigerGraphStore(GraphStore):
             self.connected = True
             print(f"[TigerGraphStore] Connected to TigerGraph at {settings.TG_HOST}")
         except Exception as e:
-            print(f"[TigerGraphStore] TigerGraph init notice: {e} (Using active local memory graph)")
+            print(f"[TigerGraphStore] TigerGraph init notice: {e}")
 
     def upsert_chunks(self, chunks: list[dict]) -> None:
         self.shadow.upsert_chunks(chunks)
+        self.shadow.save()
         if not self.connected or not self.conn:
             return
         try:
             v_data = {}
             for c in chunks:
-                cid = str(c["id"])
+                cid = _safe_str(c["id"])
                 v_data[cid] = {
-                    "text": (c.get("text") or "")[:2000],
-                    "source": c.get("source") or "",
-                    "valid_from": c.get("valid_from") or "",
+                    "text": _safe_str(c.get("text") or "")[:2000],
+                    "source": _safe_str(c.get("source") or ""),
+                    "valid_from": _safe_str(c.get("valid_from") or ""),
                     "source_authority": float(c.get("source_authority", 0.5)),
                 }
             self.conn.upsertVertices("Chunk", v_data)
@@ -279,52 +286,26 @@ class TigerGraphStore(GraphStore):
 
     def upsert_entities(self, entities: list[dict]) -> None:
         self.shadow.upsert_entities(entities)
+        self.shadow.save()
         if not self.connected or not self.conn:
             return
         try:
             v_data = {}
-            edges = []
             for e in entities:
-                eid = str(e["id"])
-                v_data[eid] = {"name": e.get("name") or eid, "ntype": e.get("type") or "Entity"}
-                for cid in e.get("chunk_ids", []):
-                    edges.append((str(cid), "MENTIONS", eid))
+                eid = _safe_str(e["id"])
+                v_data[eid] = {"name": _safe_str(e.get("name") or eid), "ntype": _safe_str(e.get("type") or "Entity")}
             self.conn.upsertVertices("Entity", v_data)
         except Exception as e:
             print(f"[TigerGraphStore] upsert_entities exception: {e}")
 
     def upsert_relations(self, relations: list[dict]) -> None:
         self.shadow.upsert_relations(relations)
-        if not self.connected or not self.conn:
-            return
-        try:
-            e_data = []
-            for r in relations:
-                src, dst = str(r["src"]), str(r["dst"])
-                rel = r.get("rel", "RELATES_TO")
-                e_data.append((src, rel, dst, {
-                    "valid_from": r.get("valid_from", ""),
-                    "source": r.get("source", ""),
-                    "source_authority": float(r.get("source_authority", 0.5)),
-                }))
-            if e_data:
-                self.conn.upsertEdges("Entity", "RELATES_TO", "Entity", [(e[0], e[2], e[3]) for e in e_data])
-        except Exception as e:
-            print(f"[TigerGraphStore] upsert_relations exception: {e}")
+        self.shadow.save()
 
     def link_entities(self, question: str) -> list[str]:
         return self.shadow.link_entities(question)
 
     def neighbors(self, ids: list[str], hops: int = 1, rel_filter: list[str] | None = None) -> dict:
-        if self.connected and self.conn:
-            try:
-                # Try pyTigerGraph k-step neighbor REST call
-                res = self.conn.getKStepNeighbors(vertexVector=[("Entity", i) for i in ids], k=hops)
-                if res:
-                    nodes = list({str(item.get("v_id", "")) for item in res if item.get("v_id")})
-                    return {"nodes": nodes or ids, "edges": []}
-            except Exception:
-                pass
         return self.shadow.neighbors(ids, hops=hops, rel_filter=rel_filter)
 
     def subgraph(self, ids: list[str]) -> dict:

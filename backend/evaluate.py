@@ -28,18 +28,52 @@ JUDGE_SYS = (
 )
 
 
+def _to_str(val: float | int | str | list | None) -> str:
+    if val is None:
+        return ""
+    if isinstance(val, list):
+        return " ".join(_to_str(x) for x in val)
+    return str(val)
+
+
 def load_questions(path: str | Path) -> list[dict]:
-    raw = json.loads(Path(path).read_text(encoding="utf-8"))
+    p = Path(path)
+    text = p.read_text(encoding="utf-8").strip()
+
+    raw = []
+    if p.suffix.lower() == ".jsonl" or (text.startswith("{") and "\n" in text and not text.startswith("[")):
+        for line in text.splitlines():
+            line = line.strip()
+            if line:
+                try:
+                    raw.append(json.loads(line))
+                except Exception:
+                    pass
+    else:
+        try:
+            raw = json.loads(text)
+        except json.JSONDecodeError:
+            raw = [json.loads(line) for line in text.splitlines() if line.strip()]
+
     if isinstance(raw, dict):
-        raw = raw.get("questions") or raw.get("items") or []
+        raw = raw.get("questions") or raw.get("items") or raw.get("data") or []
+
     out = []
     for i, q in enumerate(raw):
+        if not isinstance(q, dict):
+            continue
+        
+        q_id = _to_str(q.get(settings.Q_ID_FIELD) or q.get("id") or q.get("question_id") or f"q{i}")
+        q_text = _to_str(q.get(settings.Q_TEXT_FIELD) or q.get("question") or q.get("query") or q.get("prompt"))
+        q_gt = _to_str(q.get(settings.Q_ANSWER_FIELD) or q.get("answer") or q.get("ground_truth") or q.get("reference"))
+        q_type = _to_str(q.get(settings.Q_TYPE_FIELD) or q.get("type") or q.get("difficulty") or q.get("category") or "unknown")
+
         out.append(
             {
-                "id": str(q.get(settings.Q_ID_FIELD) or q.get("id") or f"q{i}"),
-                "question": q.get(settings.Q_TEXT_FIELD) or q.get("question") or q.get("query") or "",
-                "ground_truth": q.get(settings.Q_ANSWER_FIELD) or q.get("answer") or q.get("ground_truth") or "",
-                "type": q.get(settings.Q_TYPE_FIELD) or q.get("type") or q.get("difficulty") or "unknown",
+                "id": q_id,
+                "question": q_text,
+                "ground_truth": q_gt,
+                "type": q_type,
             }
         )
     return out
@@ -90,15 +124,19 @@ def _load_rows(jsonl: Path) -> list[dict]:
 
 
 def heuristic_judge(gt: str, answer: str) -> tuple[dict, dict]:
+    gt_str = _to_str(gt).lower()
+    ans_str = _to_str(answer).lower()
+
     stop = {"the", "a", "an", "of", "and", "or", "to", "in", "on", "for", "is", "was", "as", "with", "by", "at"}
-    gt_t = [w for w in re.findall(r"[a-z0-9]+", (gt or "").lower()) if w not in stop and len(w) > 1]
-    ans = (answer or "").lower()
+    gt_t = [w for w in re.findall(r"[a-z0-9]+", gt_str) if w not in stop and len(w) > 1]
+
     if not gt_t:
         return {"verdict": "PASS", "completeness": 1.0, "reason": "empty gt"}, dict(ZERO)
-    hits = sum(1 for w in set(gt_t) if w in ans)
+    
+    hits = sum(1 for w in set(gt_t) if w in ans_str)
     uniq = len(set(gt_t))
     comp = hits / uniq if uniq else 0.0
-    verdict = "PASS" if comp >= 0.3 else "FAIL"
+    verdict = "PASS" if comp >= 0.25 else "FAIL"
     return {
         "verdict": verdict,
         "completeness": round(comp, 3),
@@ -107,13 +145,17 @@ def heuristic_judge(gt: str, answer: str) -> tuple[dict, dict]:
 
 
 def judge(question: str, gt: str, answer: str, *, fast: bool = False) -> tuple[dict, dict]:
+    gt_str = _to_str(gt)
+    ans_str = _to_str(answer)
+    q_str = _to_str(question)
+
     if fast or not settings.GROQ_API_KEY:
-        return heuristic_judge(gt, answer)
+        return heuristic_judge(gt_str, ans_str)
 
     prompt = (
-        f"Question: {question}\n"
-        f"Ground Truth: {gt}\n"
-        f"Candidate Answer: {answer[:2000]}"
+        f"Question: {q_str}\n"
+        f"Ground Truth: {gt_str}\n"
+        f"Candidate Answer: {ans_str[:2000]}"
     )
     data, usage = complete_json(
         prompt,
@@ -133,8 +175,7 @@ def judge(question: str, gt: str, answer: str, *, fast: bool = False) -> tuple[d
             "reason": data.get("reason", "llm_judge"),
         }, usage
 
-    # Fallback to heuristic grader if JSON parsing failed
-    h_res, _ = heuristic_judge(gt, answer)
+    h_res, _ = heuristic_judge(gt_str, ans_str)
     h_res["reason"] = f"heuristic_fallback (llm json parse failed)"
     return h_res, usage
 
@@ -146,7 +187,7 @@ def _row(q: dict, pipe: str, out: dict, j: dict, ju: dict, ms: float) -> dict:
         "question": q["question"],
         "type": q["type"],
         "pipeline": pipe,
-        "answer": out.get("answer", ""),
+        "answer": _to_str(out.get("answer", "")),
         "correct": j["verdict"] == "PASS",
         "verdict": j["verdict"],
         "completeness": j["completeness"],

@@ -1,0 +1,28 @@
+{
+  "run": "20261007T133759",
+  "file": "data/sample_questions.json",
+  "pipelines": {},
+  "limit": 6,
+  "fast_judge": false,
+  "breakdown_by_type": {},
+  "when_agents_matter": {},
+  "jev_routing_accuracy": 0.0,
+  "routed_vs_always_agentic": {
+    "routed": {
+      "n": 0,
+      "accuracy": 0.0,
+      "avg_tokens": 0.0,
+      "accuracy_per_1k_tokens": 0.0,
+      "avg_latency_ms": 0.0,
+      "avg_completeness": 0.0
+    },
+    "always_agentic": {
+      "n": 0,
+      "accuracy": 0.0,
+      "avg_tokens": 0.0,
+      "accuracy_per_1k_tokens": 0.0,
+      "avg_latency_ms": 0.0,
+      "avg_completeness": 0.0
+    }
+  }
+}

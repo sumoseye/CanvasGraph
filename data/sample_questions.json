@@ -1,63 +1,63 @@
 {
   "questions": [
     {
-      "id": "q1",
-      "question": "Who is the current CEO of Aether Labs?",
-      "ground_truth": "Raj Patel became CEO of Aether Labs on 2025-01-06, succeeding Maya Chen",
-      "type": "single-hop"
-    },
-    {
-      "id": "q2",
-      "question": "What core product does NovaGraph develop?",
-      "ground_truth": "NovaGraph distributed graph query engine for real-time analytics",
-      "type": "single-hop"
-    },
-    {
-      "id": "q3",
-      "question": "Where is Aether Labs headquartered?",
-      "ground_truth": "Singapore",
-      "type": "single-hop"
-    },
-    {
-      "id": "q4",
-      "question": "Who led the Series B funding round for Aether Labs?",
-      "ground_truth": "Rivermoor Capital led the $25M Series B funding round for Aether Labs",
-      "type": "multi-hop"
-    },
-    {
-      "id": "q5",
-      "question": "Which company acquired PulseDB, the startup co-founded by Hiro Tanaka?",
-      "ground_truth": "Aether Labs acquired PulseDB",
-      "type": "multi-hop"
-    },
-    {
-      "id": "q6",
-      "question": "Who is the tech lead for NovaGraph and what startup did he previously co-found?",
-      "ground_truth": "Hiro Tanaka, co-founder of Aether Labs and tech lead for NovaGraph, previously co-founded PulseDB",
-      "type": "multi-hop"
-    },
-    {
-      "id": "q7",
-      "question": "List key executive and leadership names mentioned across Aether Labs and PulseDB.",
-      "ground_truth": "Raj Patel (CEO), Maya Chen (former CEO), Hiro Tanaka (co-founder / tech lead), Lena Okonkwo (Head of Temporal Systems)",
-      "type": "aggregation"
-    },
-    {
-      "id": "q8",
-      "question": "List the main companies, startups, and investor organizations in the corpus.",
-      "ground_truth": "Aether Labs, PulseDB, NovaGraph, Rivermoor Capital, GraphWeekly",
-      "type": "aggregation"
-    },
-    {
-      "id": "q9",
-      "question": "What was PulseDB's reported revenue in 2023 versus the 2025 audited figure?",
-      "ground_truth": "Reported as $12 million in 2023 internal docs, but superseded by $8.5 million in the 2025 Reuters audited report",
+      "id": "c1",
+      "question": "What is the official 2025 revenue for PulseDB, and what was previously reported?",
+      "ground_truth": "The 2025 audited revenue is $8.5 million, superseding the 2023 internal report of $12 million.",
       "type": "conflict"
     },
     {
-      "id": "q10",
-      "question": "Who was the CEO of Aether Labs in 2023 versus 2025?",
-      "ground_truth": "Maya Chen was CEO in 2023, superseded by Raj Patel who became CEO in January 2025",
+      "id": "c2",
+      "question": "Who is the current CEO of Aether Labs, and who did they replace?",
+      "ground_truth": "Raj Patel is the current CEO (as of 2025), superseding Maya Chen.",
+      "type": "conflict"
+    },
+    {
+      "id": "c3",
+      "question": "What happened to PulseDB?",
+      "ground_truth": "It was acquired by Aether Labs.",
+      "type": "conflict"
+    },
+    {
+      "id": "c4",
+      "question": "Is Maya Chen still leading Aether Labs?",
+      "ground_truth": "No, Raj Patel took over in January 2025.",
+      "type": "conflict"
+    },
+    {
+      "id": "c5",
+      "question": "Did PulseDB make $12 million in revenue?",
+      "ground_truth": "No, that was an early internal estimate. The final audited figure is $8.5 million.",
+      "type": "conflict"
+    },
+    {
+      "id": "c6",
+      "question": "According to the latest sources, who is the CEO of Aether Labs?",
+      "ground_truth": "Raj Patel.",
+      "type": "conflict"
+    },
+    {
+      "id": "c7",
+      "question": "Are there any discrepancies in PulseDB's financial reports?",
+      "ground_truth": "Yes, 2023 internal docs claimed $12M, but 2025 audited reports corrected it to $8.5M.",
+      "type": "conflict"
+    },
+    {
+      "id": "c8",
+      "question": "Who was the CEO of Aether Labs prior to 2025?",
+      "ground_truth": "Maya Chen.",
+      "type": "conflict"
+    },
+    {
+      "id": "c9",
+      "question": "What is the true revenue of PulseDB based on high-authority sources?",
+      "ground_truth": "$8.5 million, per the official audited press release.",
+      "type": "conflict"
+    },
+    {
+      "id": "c10",
+      "question": "Between Maya Chen and Raj Patel, who holds the CEO title as of the most recent document?",
+      "ground_truth": "Raj Patel.",
       "type": "conflict"
     }
   ]

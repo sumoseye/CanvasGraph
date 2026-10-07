@@ -1,6 +1,5 @@
 import json
 import queue
-import tempfile
 from pathlib import Path
 from urllib.request import Request, urlopen
 
@@ -44,18 +43,19 @@ class IngestUrlBody(BaseModel):
 
 class AskBody(BaseModel):
     question: str
-    mode: str = "auto"  # auto|rag|graphrag|agentic
+    mode: str = "auto"
 
 
 class BenchmarkBody(BaseModel):
-    file: str = "data/sample_questions.json"
+    file: str = "data/questions/eval_public.jsonl"
     pipelines: list[str] | None = None
     run: str | None = None
-    limit: int | None = None
+    limit: int | None = 6
+    fast: bool = True
 
 
 class HiddenBody(BaseModel):
-    file: str = "data/sample_questions.json"
+    file: str = "data/questions/eval_hidden.jsonl"
 
 
 @app.get("/health")
@@ -143,16 +143,16 @@ def stats():
 
 @app.get("/graph")
 def graph(limit: int = 250):
-    """Return nodes/edges for the force-graph canvas."""
     store = get_store()
     nodes: list[dict] = []
     edges: list[dict] = []
     seen: set[str] = set()
 
-    # Prefer NetworkX memory store
     g = getattr(store, "g", None)
+    if g is None and hasattr(store, "shadow"):
+        g = getattr(store.shadow, "g", None)
+
     if g is not None:
-        # prioritize chunk + person + org nodes
         ranked = list(g.nodes(data=True))
         for nid, data in ranked[:limit]:
             ntype = data.get("ntype") or data.get("type") or "Entity"
@@ -180,7 +180,6 @@ def graph(limit: int = 250):
             if len(edges) >= limit * 2:
                 break
     else:
-        # fallback: empty shell from stats
         st = store.stats()
         nodes = [{"id": "empty", "ntype": "Document", "label": f"{st.get('chunks', 0)} chunks", "text": ""}]
 
@@ -191,19 +190,29 @@ def graph(limit: int = 250):
 def benchmark(body: BenchmarkBody):
     q: queue.Queue = queue.Queue()
 
+    # Resolve dataset file path
+    target_file = Path(body.file)
+    if not target_file.exists():
+        if (ROOT / body.file).exists():
+            target_file = ROOT / body.file
+        elif (ROOT / "data" / "questions" / "eval_public.jsonl").exists():
+            target_file = ROOT / "data" / "questions" / "eval_public.jsonl"
+        elif (ROOT / "data" / "sample_questions.json").exists():
+            target_file = ROOT / "data" / "sample_questions.json"
+
     def progress(ev: dict):
         q.put(ev)
 
     def work():
         try:
             run_eval(
-                body.file,
+                target_file,
                 body.pipelines,
                 body.run,
                 progress=progress,
                 limit=body.limit,
                 sequential=True,
-                fast=False,
+                fast=body.fast,
             )
         except Exception as e:
             q.put({"event": "error", "error": str(e)})
@@ -233,7 +242,6 @@ def results(run: str):
         if not p.exists():
             raise HTTPException(404, "no summary yet — run a benchmark first")
         summ = json.loads(p.read_text(encoding="utf-8"))
-        # also try to load matching rows
         run_id = summ.get("run", "")
         rows = []
         if run_id and (RESULTS_DIR / f"{run_id}.jsonl").exists():

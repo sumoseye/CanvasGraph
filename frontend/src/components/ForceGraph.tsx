@@ -33,6 +33,7 @@ export default function ForceGraph({
   onNodeClick,
 }: Props) {
   const ref = useRef<any>(null);
+  
   const data = useMemo(() => {
     const ns = nodes.map((n) => ({ ...n }));
     const idSet = new Set(ns.map((n) => n.id));
@@ -50,7 +51,7 @@ export default function ForceGraph({
     const fg = ref.current;
     if (!fg) return;
     fg.d3Force("charge")?.strength(-120);
-    fg.d3Force("link")?.distance(40);
+    fg.d3Force("link")?.distance(50);
   }, [data]);
 
   return (
@@ -60,29 +61,37 @@ export default function ForceGraph({
         graphData={data}
         backgroundColor="rgba(0,0,0,0)"
         nodeId="id"
-        linkColor={() => "rgba(148,163,184,0.25)"}
-        linkWidth={(l: any) =>
-          highlightIds &&
-          highlightIds.has(String(l.source.id || l.source)) &&
-          highlightIds.has(String(l.target.id || l.target))
-            ? 2.2
-            : 0.6
-        }
+        
+        // Red color for SUPERSEDED_BY, faint blue for standard relationships
+        linkColor={(l: any) => l.rel === "SUPERSEDED_BY" ? "#ef4444" : "rgba(148,163,184,0.25)"}
+        
+        // Make SUPERSEDED_BY dashed
+        linkLineDash={(l: any) => l.rel === "SUPERSEDED_BY" ? [4, 4] : []}
+        
+        linkWidth={(l: any) => {
+          if (l.rel === "SUPERSEDED_BY") return 2;
+          const isHi = highlightIds && highlightIds.has(String(l.source.id || l.source)) && highlightIds.has(String(l.target.id || l.target));
+          return isHi ? 2.2 : 0.6;
+        }}
+        
         nodeCanvasObject={(node: any, ctx, globalScale) => {
           const id = String(node.id);
           const hi = highlightIds?.has(id);
           const color = COLORS[node.ntype || "Entity"] || "#5A67D8";
           const r = hi ? 7 : 4;
+          
           ctx.beginPath();
           ctx.arc(node.x, node.y, r, 0, 2 * Math.PI, false);
           ctx.fillStyle = color;
           ctx.globalAlpha = hi || !highlightIds?.size ? 1 : 0.25;
           ctx.fill();
+          
           if (hi) {
             ctx.strokeStyle = "#fff";
             ctx.lineWidth = 1.5 / globalScale;
             ctx.stroke();
           }
+          
           const label = node.label || id;
           if (globalScale > 1.4 || hi) {
             ctx.font = `${11 / globalScale}px IBM Plex Sans`;

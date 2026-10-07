@@ -1,0 +1,98 @@
+{
+  "run": "20261007T134532",
+  "file": "data/questions/eval_public.jsonl",
+  "pipelines": {
+    "rag": {
+      "n": 6,
+      "accuracy": 0.5,
+      "avg_tokens": 692.0,
+      "accuracy_per_1k_tokens": 0.7225,
+      "avg_latency_ms": 2010.9,
+      "avg_completeness": 0.4445
+    },
+    "graphrag": {
+      "n": 6,
+      "accuracy": 0.6667,
+      "avg_tokens": 656.5,
+      "accuracy_per_1k_tokens": 1.0155,
+      "avg_latency_ms": 2008.7,
+      "avg_completeness": 0.5278
+    },
+    "agentic": {
+      "n": 6,
+      "accuracy": 0.6667,
+      "avg_tokens": 1850.67,
+      "accuracy_per_1k_tokens": 0.3602,
+      "avg_latency_ms": 6187.7,
+      "avg_completeness": 0.5278
+    },
+    "routed": {
+      "n": 6,
+      "accuracy": 0.6667,
+      "avg_tokens": 669.5,
+      "accuracy_per_1k_tokens": 0.9958,
+      "avg_latency_ms": 2224.4,
+      "avg_completeness": 0.5278
+    }
+  },
+  "limit": 6,
+  "fast_judge": true,
+  "breakdown_by_type": {
+    "unknown": {
+      "rag": {
+        "n": 6,
+        "accuracy": 0.5,
+        "avg_tokens": 692.0,
+        "accuracy_per_1k_tokens": 0.7225,
+        "avg_latency_ms": 2010.9,
+        "avg_completeness": 0.4445
+      },
+      "graphrag": {
+        "n": 6,
+        "accuracy": 0.6667,
+        "avg_tokens": 656.5,
+        "accuracy_per_1k_tokens": 1.0155,
+        "avg_latency_ms": 2008.7,
+        "avg_completeness": 0.5278
+      },
+      "agentic": {
+        "n": 6,
+        "accuracy": 0.6667,
+        "avg_tokens": 1850.67,
+        "accuracy_per_1k_tokens": 0.3602,
+        "avg_latency_ms": 6187.7,
+        "avg_completeness": 0.5278
+      },
+      "routed": {
+        "n": 6,
+        "accuracy": 0.6667,
+        "avg_tokens": 669.5,
+        "accuracy_per_1k_tokens": 0.9958,
+        "avg_latency_ms": 2224.4,
+        "avg_completeness": 0.5278
+      }
+    }
+  },
+  "when_agents_matter": {
+    "unknown": "best=graphrag"
+  },
+  "jev_routing_accuracy": 0.5,
+  "routed_vs_always_agentic": {
+    "routed": {
+      "n": 6,
+      "accuracy": 0.6667,
+      "avg_tokens": 669.5,
+      "accuracy_per_1k_tokens": 0.9958,
+      "avg_latency_ms": 2224.4,
+      "avg_completeness": 0.5278
+    },
+    "always_agentic": {
+      "n": 6,
+      "accuracy": 0.6667,
+      "avg_tokens": 1850.67,
+      "accuracy_per_1k_tokens": 0.3602,
+      "avg_latency_ms": 6187.7,
+      "avg_completeness": 0.5278
+    }
+  }
+}

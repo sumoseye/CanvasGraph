@@ -6,9 +6,9 @@ import { api } from "../api";
 import type { AskResult, GraphNode, Pipeline, Session } from "../types";
 
 const EXAMPLES = [
+  "What is the official 2025 revenue for PulseDB, and what was previously reported?",
   "Who is the current CEO of Aether Labs?",
   "Who led the Series B funding round for Aether Labs?",
-  "Who was the CEO of Aether Labs in 2023 versus 2025?",
 ];
 
 type Props = {
@@ -48,7 +48,6 @@ export default function Canvas({ active, onResult }: Props) {
     return ids;
   }, [result]);
 
-  // merge subgraph nodes into main graph for visibility
   const merged = useMemo(() => {
     const map = new Map(graph.nodes.map((n) => [n.id, n]));
     for (const n of result?.subgraph?.nodes || []) {
@@ -75,7 +74,6 @@ export default function Canvas({ active, onResult }: Props) {
         result: r,
         ts: Date.now(),
       });
-      // refresh full graph occasionally
       api.graph(250).then((g) => setGraph({ nodes: g.nodes || [], edges: g.edges || [] })).catch(() => {});
     } catch (e) {
       setErr(String(e));
@@ -88,15 +86,15 @@ export default function Canvas({ active, onResult }: Props) {
   const tok = result?.tokens || { prompt: 0, completion: 0, total: 0 };
 
   return (
-    <div className="h-full flex min-h-0">
-      {/* center stage */}
-      <div className="flex-1 relative min-w-0 flex flex-col">
+    <div className="h-full flex min-h-0 relative overflow-hidden">
+      {/* center stage - ADDED overflow-hidden to prevent canvas bleed */}
+      <div className="flex-1 relative min-w-0 flex flex-col overflow-hidden">
         <div className="flex-1 min-h-0">
           <ForceGraph nodes={merged.nodes} edges={merged.edges} highlightIds={highlight} />
         </div>
 
         {/* glass search */}
-        <div className="absolute left-1/2 -translate-x-1/2 bottom-6 w-[min(720px,92%)]">
+        <div className="absolute left-1/2 -translate-x-1/2 bottom-6 w-[min(720px,92%)] z-10">
           <div className="glass rounded-2xl shadow-2xl p-3">
             <div className="flex gap-2 mb-2">
               {(["auto", "rag", "graphrag", "agentic"] as Pipeline[]).map((m) => (
@@ -127,7 +125,7 @@ export default function Canvas({ active, onResult }: Props) {
               <button
                 onClick={() => ask()}
                 disabled={busy}
-                className="px-4 rounded-xl bg-accent hover:bg-accent/90 text-white text-sm font-medium disabled:opacity-50 flex items-center gap-1.5"
+                className="px-4 rounded-xl bg-accent hover:bg-accent/90 text-white text-sm font-medium disabled:opacity-50 flex items-center gap-1.5 cursor-pointer"
               >
                 {busy ? <Loader2 size={16} className="animate-spin" /> : <Sparkles size={16} />}
                 Ask
@@ -141,7 +139,7 @@ export default function Canvas({ active, onResult }: Props) {
                     setQ(ex);
                     ask(ex);
                   }}
-                  className="text-[10px] px-2 py-1 rounded-full bg-panel-2 text-slate-400 hover:text-slate-200 border border-border"
+                  className="text-[10px] px-2 py-1 rounded-full bg-panel-2 text-slate-400 hover:text-slate-200 border border-border cursor-pointer"
                 >
                   {ex.length > 48 ? ex.slice(0, 48) + "…" : ex}
                 </button>
@@ -152,15 +150,15 @@ export default function Canvas({ active, onResult }: Props) {
         </div>
       </div>
 
-      {/* right drawer */}
-      <aside className="w-[400px] shrink-0 border-l border-border bg-panel flex flex-col min-h-0">
+      {/* right drawer - ADDED z-20 and relative to stay above graph */}
+      <aside className="w-[400px] shrink-0 border-l border-border bg-panel flex flex-col min-h-0 relative z-20 shadow-2xl">
         <div className="flex border-b border-border">
           {(["answer", "agent"] as const).map((t) => (
             <button
               key={t}
               onClick={() => setTab(t)}
-              className={`flex-1 py-3 text-sm capitalize ${
-                tab === t ? "text-accent border-b-2 border-accent" : "text-slate-400"
+              className={`flex-1 py-3 text-sm capitalize cursor-pointer transition-colors ${
+                tab === t ? "text-accent border-b-2 border-accent bg-accent/5" : "text-slate-400 hover:bg-panel-2"
               }`}
             >
               {t === "answer" ? "Answer" : "Jev + Trace"}
@@ -190,7 +188,7 @@ export default function Canvas({ active, onResult }: Props) {
               <article className="text-sm leading-relaxed whitespace-pre-wrap">{result.answer}</article>
 
               <section>
-                <h3 className="text-xs uppercase tracking-widest text-slate-500 mb-2">Citations</h3>
+                <h3 className="text-xs uppercase tracking-widest text-slate-500 mb-2 mt-4">Citations</h3>
                 <div className="flex flex-wrap gap-1">
                   {(result.citations || []).map((c) => (
                     <span
@@ -205,20 +203,7 @@ export default function Canvas({ active, onResult }: Props) {
                   )}
                 </div>
               </section>
-
-              <section>
-                <h3 className="text-xs uppercase tracking-widest text-slate-500 mb-2">
-                  Highlighted subgraph
-                </h3>
-                <div className="h-48 rounded-lg overflow-hidden border border-border">
-                  <ForceGraph
-                    nodes={result.subgraph?.nodes || []}
-                    edges={result.subgraph?.edges || []}
-                    highlightIds={highlight}
-                    height={192}
-                  />
-                </div>
-              </section>
+              {/* Highlighted subgraph view removed from here per your request */}
             </>
           )}
 
@@ -286,23 +271,12 @@ export default function Canvas({ active, onResult }: Props) {
                 </h3>
                 <ul className="text-[11px] font-mono text-slate-400 space-y-1">
                   {(result.opt_logs || []).map((l, i) => (
-                    <li key={i} className="truncate">
+                    <li key={i} className="truncate" title={l}>
                       · {l}
                     </li>
                   ))}
                   {!result.opt_logs?.length && <li className="text-slate-600">none</li>}
                 </ul>
-              </section>
-
-              <section>
-                <h3 className="text-xs uppercase tracking-widest text-slate-500 mb-2">Tools used</h3>
-                <div className="flex flex-wrap gap-1">
-                  {(result.tools_used || []).map((t, i) => (
-                    <span key={i} className="text-[10px] px-1.5 py-0.5 rounded bg-panel-2 border border-border">
-                      {t}
-                    </span>
-                  ))}
-                </div>
               </section>
             </>
           )}
