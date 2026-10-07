@@ -1,0 +1,3416 @@
+{
+  "timestamp": "2026-10-07T14:57:22.473039+00:00",
+  "model": "openai/gpt-oss-120b",
+  "total_questions": 50,
+  "total_tokens_burned": 33616,
+  "avg_tokens_per_query": 672.3,
+  "total_latency_seconds": 195.96,
+  "avg_latency_seconds": 3.92,
+  "router_breakdown": {
+    "rag": 20,
+    "graphrag": 30,
+    "agentic": 0
+  },
+  "results": [
+    {
+      "id": "hidden_1",
+      "question": "Who won the gold medal in the event held at Olympic Tennis Centre on 15 to 22 August 2004?",
+      "type": "unknown",
+      "routed_pipeline": "rag",
+      "jev_probabilities": {
+        "rag": 0.653683043749251,
+        "graphrag": 0.23748930512182811,
+        "agentic": 0.1088276511289208
+      },
+      "route_rule": "argmax",
+      "answer": "I\u2019m sorry, but the provided context does not contain any information about the Olympic Tennis Centre event held from 15\u202fto\u202f22\u202fAugust\u202f2004, so I cannot determine who won the gold medal in that event.",
+      "citations": [
+        "c_0ffdb43f2357a36f",
+        "c_b332be9d77d88f6c",
+        "c_cce653cce1901cdf",
+        "c_c91e475623dbf755"
+      ],
+      "tokens": {
+        "prompt": 622,
+        "completion": 100,
+        "total": 722
+      },
+      "context_tokens": 425,
+      "steps": 1,
+      "tools_used": [
+        "similarity_search"
+      ],
+      "stop_reason": null,
+      "agent_trace": [
+        {
+          "step": 1,
+          "tool": "similarity_search",
+          "args": {
+            "k": 7,
+            "used": 4
+          },
+          "tokens": {
+            "prompt": 0,
+            "completion": 0,
+            "total": 0
+          },
+          "#chunks": 4
+        }
+      ],
+      "opt_logs": [
+        "top-7 retrieved, 4 sent"
+      ],
+      "latency_ms": 1129.7
+    },
+    {
+      "id": "hidden_2",
+      "question": "How many nations competed in Fencing at the 1988 Summer Olympics \u2013 Men's foil?",
+      "type": "unknown",
+      "routed_pipeline": "graphrag",
+      "jev_probabilities": {
+        "rag": 0.3254799193612892,
+        "graphrag": 0.23516814479974732,
+        "agentic": 0.4393519358389635
+      },
+      "route_rule": "graphrag_then_escalate",
+      "answer": "I\u2019m sorry, but the provided evidence does not contain any information about how many nations competed in the men\u2019s foil event at the 1988 Summer Olympics.",
+      "citations": [
+        "c_e949e612306b79fb",
+        "c_7fbd291ce9e0a45b",
+        "c_cce653cce1901cdf",
+        "c_b332be9d77d88f6c"
+      ],
+      "tokens": {
+        "prompt": 559,
+        "completion": 71,
+        "total": 630
+      },
+      "context_tokens": 378,
+      "steps": 3,
+      "tools_used": [
+        "entity_linker",
+        "graph_traverse",
+        "doc_retriever"
+      ],
+      "stop_reason": null,
+      "agent_trace": [
+        {
+          "step": 1,
+          "tool": "entity_linker",
+          "args": {
+            "n": 12
+          },
+          "tokens": {
+            "prompt": 0,
+            "completion": 0,
+            "total": 0
+          },
+          "#chunks": 0
+        },
+        {
+          "step": 2,
+          "tool": "graph_traverse",
+          "args": {
+            "hops": 2,
+            "pruned": 12
+          },
+          "tokens": {
+            "prompt": 0,
+            "completion": 0,
+            "total": 0
+          },
+          "#chunks": 4
+        },
+        {
+          "step": 3,
+          "tool": "doc_retriever",
+          "args": {
+            "sent": 4
+          },
+          "tokens": {
+            "prompt": 0,
+            "completion": 0,
+            "total": 0
+          },
+          "#chunks": 4
+        }
+      ],
+      "opt_logs": [
+        "linked 12 entities: ['aether_labs', 'novagraph', 'ceo', 'raj_patel', 'rivermoor_capital', 'oakline_ventures', 'series_b', '42_million', '310_million', 'singapore_office', 'independent_director', 'funds']",
+        "82 nodes -> top 12",
+        "13 cycles removed"
+      ],
+      "latency_ms": 730.2
+    },
+    {
+      "id": "hidden_3",
+      "question": "According to the provided corpus, how many cycling events at the 2008 Summer Olympics had more than 30 competitors?",
+      "type": "unknown",
+      "routed_pipeline": "graphrag",
+      "jev_probabilities": {
+        "rag": 0.32548888195928904,
+        "graphrag": 0.18545797458127367,
+        "agentic": 0.4890531434594373
+      },
+      "route_rule": "graphrag_then_escalate",
+      "answer": "The provided corpus does not contain any information about the number of cycling events at the 2008 Summer Olympics that had more than 30 competitors. Consequently, I cannot determine that figure from the available evidence.",
+      "citations": [
+        "c_e949e612306b79fb",
+        "c_cce653cce1901cdf",
+        "c_b332be9d77d88f6c",
+        "c_5c64959acbe28db4"
+      ],
+      "tokens": {
+        "prompt": 562,
+        "completion": 83,
+        "total": 645
+      },
+      "context_tokens": 383,
+      "steps": 3,
+      "tools_used": [
+        "entity_linker",
+        "graph_traverse",
+        "doc_retriever"
+      ],
+      "stop_reason": null,
+      "agent_trace": [
+        {
+          "step": 1,
+          "tool": "entity_linker",
+          "args": {
+            "n": 12
+          },
+          "tokens": {
+            "prompt": 0,
+            "completion": 0,
+            "total": 0
+          },
+          "#chunks": 0
+        },
+        {
+          "step": 2,
+          "tool": "graph_traverse",
+          "args": {
+            "hops": 2,
+            "pruned": 12
+          },
+          "tokens": {
+            "prompt": 0,
+            "completion": 0,
+            "total": 0
+          },
+          "#chunks": 4
+        },
+        {
+          "step": 3,
+          "tool": "doc_retriever",
+          "args": {
+            "sent": 4
+          },
+          "tokens": {
+            "prompt": 0,
+            "completion": 0,
+            "total": 0
+          },
+          "#chunks": 4
+        }
+      ],
+      "opt_logs": [
+        "linked 12 entities: ['aether_labs', 'maya_chen', 'pulsedb', 'ceo', 'lena_okonkwo', 'temporal_systems', 'conflict_resolution', 'graphweekly', 'latticedb', 'austin', 'query_optimization', 'weekly_product_review']",
+        "77 nodes -> top 12",
+        "16 cycles removed"
+      ],
+      "latency_ms": 667.2
+    },
+    {
+      "id": "hidden_4",
+      "question": "Who won the gold medal in the event held at Sydney International Shooting Centre on 22 September 2000?",
+      "type": "unknown",
+      "routed_pipeline": "rag",
+      "jev_probabilities": {
+        "rag": 0.6571378488667262,
+        "graphrag": 0.2357787374578518,
+        "agentic": 0.10708341367542193
+      },
+      "route_rule": "argmax",
+      "answer": "The provided context does not contain any information about the gold\u2011medal winner of the event held at the Sydney International Shooting Centre on\u202f22\u202fSeptember\u202f2000. Therefore, I cannot answer the question from the given material.",
+      "citations": [
+        "c_0ffdb43f2357a36f",
+        "c_b332be9d77d88f6c",
+        "c_0eed75981702db52",
+        "c_cce653cce1901cdf"
+      ],
+      "tokens": {
+        "prompt": 601,
+        "completion": 91,
+        "total": 692
+      },
+      "context_tokens": 413,
+      "steps": 1,
+      "tools_used": [
+        "similarity_search"
+      ],
+      "stop_reason": null,
+      "agent_trace": [
+        {
+          "step": 1,
+          "tool": "similarity_search",
+          "args": {
+            "k": 7,
+            "used": 4
+          },
+          "tokens": {
+            "prompt": 0,
+            "completion": 0,
+            "total": 0
+          },
+          "#chunks": 4
+        }
+      ],
+      "opt_logs": [
+        "top-7 retrieved, 4 sent"
+      ],
+      "latency_ms": 603.4
+    },
+    {
+      "id": "hidden_5",
+      "question": "According to the provided corpus, which sailing event at the 2016 Summer Olympics had the highest number of competitors?",
+      "type": "unknown",
+      "routed_pipeline": "rag",
+      "jev_probabilities": {
+        "rag": 0.6760469233303587,
+        "graphrag": 0.21140220140600435,
+        "agentic": 0.11255087526363702
+      },
+      "route_rule": "argmax",
+      "answer": "The provided corpus does not contain any information about the sailing events or competitor numbers at the 2016 Summer Olympics, so the answer cannot be determined from the given context.",
+      "citations": [
+        "c_b332be9d77d88f6c",
+        "c_0ffdb43f2357a36f",
+        "c_e949e612306b79fb",
+        "c_cce653cce1901cdf"
+      ],
+      "tokens": {
+        "prompt": 601,
+        "completion": 76,
+        "total": 677
+      },
+      "context_tokens": 401,
+      "steps": 1,
+      "tools_used": [
+        "similarity_search"
+      ],
+      "stop_reason": null,
+      "agent_trace": [
+        {
+          "step": 1,
+          "tool": "similarity_search",
+          "args": {
+            "k": 7,
+            "used": 4
+          },
+          "tokens": {
+            "prompt": 0,
+            "completion": 0,
+            "total": 0
+          },
+          "#chunks": 4
+        }
+      ],
+      "opt_logs": [
+        "top-7 retrieved, 4 sent"
+      ],
+      "latency_ms": 460.5
+    },
+    {
+      "id": "hidden_6",
+      "question": "According to the provided corpus, how many cross-country skiing events at the 2010 Winter Olympics had more than 62 competitors?",
+      "type": "unknown",
+      "routed_pipeline": "graphrag",
+      "jev_probabilities": {
+        "rag": 0.3213354372097553,
+        "graphrag": 0.18539441956669914,
+        "agentic": 0.4932701432235456
+      },
+      "route_rule": "graphrag_then_escalate",
+      "answer": "The provided corpus does not contain any information about the number of cross\u2011country skiing events at the 2010 Winter Olympics that had more than 62 competitors. Consequently, I cannot determine that figure from the given evidence.",
+      "citations": [
+        "c_e949e612306b79fb",
+        "c_cce653cce1901cdf",
+        "c_b332be9d77d88f6c",
+        "c_5c64959acbe28db4"
+      ],
+      "tokens": {
+        "prompt": 564,
+        "completion": 90,
+        "total": 654
+      },
+      "context_tokens": 383,
+      "steps": 3,
+      "tools_used": [
+        "entity_linker",
+        "graph_traverse",
+        "doc_retriever"
+      ],
+      "stop_reason": null,
+      "agent_trace": [
+        {
+          "step": 1,
+          "tool": "entity_linker",
+          "args": {
+            "n": 12
+          },
+          "tokens": {
+            "prompt": 0,
+            "completion": 0,
+            "total": 0
+          },
+          "#chunks": 0
+        },
+        {
+          "step": 2,
+          "tool": "graph_traverse",
+          "args": {
+            "hops": 2,
+            "pruned": 12
+          },
+          "tokens": {
+            "prompt": 0,
+            "completion": 0,
+            "total": 0
+          },
+          "#chunks": 4
+        },
+        {
+          "step": 3,
+          "tool": "doc_retriever",
+          "args": {
+            "sent": 4
+          },
+          "tokens": {
+            "prompt": 0,
+            "completion": 0,
+            "total": 0
+          },
+          "#chunks": 4
+        }
+      ],
+      "opt_logs": [
+        "linked 12 entities: ['aether_labs', 'maya_chen', 'pulsedb', 'ceo', 'lena_okonkwo', 'temporal_systems', 'conflict_resolution', 'graphweekly', 'latticedb', 'austin', 'query_optimization', 'weekly_product_review']",
+        "77 nodes -> top 12",
+        "16 cycles removed"
+      ],
+      "latency_ms": 1296.7
+    },
+    {
+      "id": "hidden_7",
+      "question": "Who won the gold medal in the men's heavyweight boxing event at the Summer Olympics held immediately before 2016?",
+      "type": "unknown",
+      "routed_pipeline": "graphrag",
+      "jev_probabilities": {
+        "rag": 0.12950260813308928,
+        "graphrag": 0.665940961996773,
+        "agentic": 0.20455642987013767
+      },
+      "route_rule": "argmax",
+      "answer": "I\u2019m sorry, but the provided evidence does not contain any information about the men\u2019s heavyweight boxing gold\u2011medal winner at the Summer Olympics prior to 2016.",
+      "citations": [
+        "c_e949e612306b79fb",
+        "c_7fbd291ce9e0a45b",
+        "c_cce653cce1901cdf",
+        "c_b332be9d77d88f6c"
+      ],
+      "tokens": {
+        "prompt": 563,
+        "completion": 130,
+        "total": 693
+      },
+      "context_tokens": 378,
+      "steps": 3,
+      "tools_used": [
+        "entity_linker",
+        "graph_traverse",
+        "doc_retriever"
+      ],
+      "stop_reason": null,
+      "agent_trace": [
+        {
+          "step": 1,
+          "tool": "entity_linker",
+          "args": {
+            "n": 12
+          },
+          "tokens": {
+            "prompt": 0,
+            "completion": 0,
+            "total": 0
+          },
+          "#chunks": 0
+        },
+        {
+          "step": 2,
+          "tool": "graph_traverse",
+          "args": {
+            "hops": 2,
+            "pruned": 12
+          },
+          "tokens": {
+            "prompt": 0,
+            "completion": 0,
+            "total": 0
+          },
+          "#chunks": 4
+        },
+        {
+          "step": 3,
+          "tool": "doc_retriever",
+          "args": {
+            "sent": 4
+          },
+          "tokens": {
+            "prompt": 0,
+            "completion": 0,
+            "total": 0
+          },
+          "#chunks": 4
+        }
+      ],
+      "opt_logs": [
+        "linked 12 entities: ['aether_labs', 'maya_chen', 'graphweekly', 'latticedb', 'austin', 'ceo', 'query_optimization', 'weekly_product_review', 'partnership_letters', 'novagraph', 'raj_patel', 'rivermoor_capital']",
+        "82 nodes -> top 12",
+        "13 cycles removed"
+      ],
+      "latency_ms": 786.3
+    },
+    {
+      "id": "hidden_8",
+      "question": "According to the provided corpus, how many sailing events at the 1996 Summer Olympics had more than 46 competitors?",
+      "type": "unknown",
+      "routed_pipeline": "graphrag",
+      "jev_probabilities": {
+        "rag": 0.32548888195928904,
+        "graphrag": 0.18545797458127367,
+        "agentic": 0.4890531434594373
+      },
+      "route_rule": "graphrag_then_escalate",
+      "answer": "The provided corpus does not contain any information about the number of sailing events at the 1996 Summer Olympics that had more than\u202f46 competitors. Consequently, I cannot answer the question from the available evidence.",
+      "citations": [
+        "c_e949e612306b79fb",
+        "c_cce653cce1901cdf",
+        "c_b332be9d77d88f6c",
+        "c_5c64959acbe28db4"
+      ],
+      "tokens": {
+        "prompt": 562,
+        "completion": 93,
+        "total": 655
+      },
+      "context_tokens": 383,
+      "steps": 3,
+      "tools_used": [
+        "entity_linker",
+        "graph_traverse",
+        "doc_retriever"
+      ],
+      "stop_reason": null,
+      "agent_trace": [
+        {
+          "step": 1,
+          "tool": "entity_linker",
+          "args": {
+            "n": 12
+          },
+          "tokens": {
+            "prompt": 0,
+            "completion": 0,
+            "total": 0
+          },
+          "#chunks": 0
+        },
+        {
+          "step": 2,
+          "tool": "graph_traverse",
+          "args": {
+            "hops": 2,
+            "pruned": 12
+          },
+          "tokens": {
+            "prompt": 0,
+            "completion": 0,
+            "total": 0
+          },
+          "#chunks": 4
+        },
+        {
+          "step": 3,
+          "tool": "doc_retriever",
+          "args": {
+            "sent": 4
+          },
+          "tokens": {
+            "prompt": 0,
+            "completion": 0,
+            "total": 0
+          },
+          "#chunks": 4
+        }
+      ],
+      "opt_logs": [
+        "linked 12 entities: ['aether_labs', 'maya_chen', 'pulsedb', 'ceo', 'lena_okonkwo', 'temporal_systems', 'conflict_resolution', 'graphweekly', 'latticedb', 'austin', 'query_optimization', 'weekly_product_review']",
+        "77 nodes -> top 12",
+        "16 cycles removed"
+      ],
+      "latency_ms": 629.3
+    },
+    {
+      "id": "hidden_9",
+      "question": "According to the provided corpus, which sailing event at the 2004 Summer Olympics had the highest number of competitors?",
+      "type": "unknown",
+      "routed_pipeline": "rag",
+      "jev_probabilities": {
+        "rag": 0.6760469233303587,
+        "graphrag": 0.21140220140600435,
+        "agentic": 0.11255087526363702
+      },
+      "route_rule": "argmax",
+      "answer": "The provided corpus does not contain any information about the sailing events or competitor counts at the 2004 Summer Olympics, so the question cannot be answered from the given context.",
+      "citations": [
+        "c_b332be9d77d88f6c",
+        "c_0ffdb43f2357a36f",
+        "c_e949e612306b79fb",
+        "c_cce653cce1901cdf"
+      ],
+      "tokens": {
+        "prompt": 601,
+        "completion": 83,
+        "total": 684
+      },
+      "context_tokens": 401,
+      "steps": 1,
+      "tools_used": [
+        "similarity_search"
+      ],
+      "stop_reason": null,
+      "agent_trace": [
+        {
+          "step": 1,
+          "tool": "similarity_search",
+          "args": {
+            "k": 7,
+            "used": 4
+          },
+          "tokens": {
+            "prompt": 0,
+            "completion": 0,
+            "total": 0
+          },
+          "#chunks": 4
+        }
+      ],
+      "opt_logs": [
+        "top-7 retrieved, 4 sent"
+      ],
+      "latency_ms": 580.5
+    },
+    {
+      "id": "hidden_10",
+      "question": "How many nations competed in Boxing at the 1996 Summer Olympics \u2013 Flyweight?",
+      "type": "unknown",
+      "routed_pipeline": "graphrag",
+      "jev_probabilities": {
+        "rag": 0.3295117710226826,
+        "graphrag": 0.23512377490227201,
+        "agentic": 0.4353644540750455
+      },
+      "route_rule": "graphrag_then_escalate",
+      "answer": "The provided evidence does not contain any information about the number of nations that competed in the men's flyweight boxing event at the 1996 Summer Olympics. Consequently, I cannot determine that figure from the given graph data.",
+      "citations": [
+        "c_e949e612306b79fb",
+        "c_7fbd291ce9e0a45b",
+        "c_cce653cce1901cdf",
+        "c_b332be9d77d88f6c"
+      ],
+      "tokens": {
+        "prompt": 558,
+        "completion": 81,
+        "total": 639
+      },
+      "context_tokens": 378,
+      "steps": 3,
+      "tools_used": [
+        "entity_linker",
+        "graph_traverse",
+        "doc_retriever"
+      ],
+      "stop_reason": null,
+      "agent_trace": [
+        {
+          "step": 1,
+          "tool": "entity_linker",
+          "args": {
+            "n": 12
+          },
+          "tokens": {
+            "prompt": 0,
+            "completion": 0,
+            "total": 0
+          },
+          "#chunks": 0
+        },
+        {
+          "step": 2,
+          "tool": "graph_traverse",
+          "args": {
+            "hops": 2,
+            "pruned": 12
+          },
+          "tokens": {
+            "prompt": 0,
+            "completion": 0,
+            "total": 0
+          },
+          "#chunks": 4
+        },
+        {
+          "step": 3,
+          "tool": "doc_retriever",
+          "args": {
+            "sent": 4
+          },
+          "tokens": {
+            "prompt": 0,
+            "completion": 0,
+            "total": 0
+          },
+          "#chunks": 4
+        }
+      ],
+      "opt_logs": [
+        "linked 12 entities: ['aether_labs', 'novagraph', 'ceo', 'raj_patel', 'rivermoor_capital', 'oakline_ventures', 'series_b', '42_million', '310_million', 'singapore_office', 'independent_director', 'funds']",
+        "82 nodes -> top 12",
+        "13 cycles removed"
+      ],
+      "latency_ms": 679.2
+    },
+    {
+      "id": "hidden_11",
+      "question": "According to the provided corpus, how many weightlifting events at the 1992 Summer Olympics had more than 24 competitors?",
+      "type": "unknown",
+      "routed_pipeline": "graphrag",
+      "jev_probabilities": {
+        "rag": 0.32548888195928904,
+        "graphrag": 0.18545797458127367,
+        "agentic": 0.4890531434594373
+      },
+      "route_rule": "graphrag_then_escalate",
+      "answer": "The provided corpus does not contain any information about the number of weightlifting events at the 1992 Summer Olympics that had more than\u202f24 competitors. Consequently, I cannot answer the question based on the available evidence.",
+      "citations": [
+        "c_e949e612306b79fb",
+        "c_cce653cce1901cdf",
+        "c_b332be9d77d88f6c",
+        "c_5c64959acbe28db4"
+      ],
+      "tokens": {
+        "prompt": 563,
+        "completion": 86,
+        "total": 649
+      },
+      "context_tokens": 383,
+      "steps": 3,
+      "tools_used": [
+        "entity_linker",
+        "graph_traverse",
+        "doc_retriever"
+      ],
+      "stop_reason": null,
+      "agent_trace": [
+        {
+          "step": 1,
+          "tool": "entity_linker",
+          "args": {
+            "n": 12
+          },
+          "tokens": {
+            "prompt": 0,
+            "completion": 0,
+            "total": 0
+          },
+          "#chunks": 0
+        },
+        {
+          "step": 2,
+          "tool": "graph_traverse",
+          "args": {
+            "hops": 2,
+            "pruned": 12
+          },
+          "tokens": {
+            "prompt": 0,
+            "completion": 0,
+            "total": 0
+          },
+          "#chunks": 4
+        },
+        {
+          "step": 3,
+          "tool": "doc_retriever",
+          "args": {
+            "sent": 4
+          },
+          "tokens": {
+            "prompt": 0,
+            "completion": 0,
+            "total": 0
+          },
+          "#chunks": 4
+        }
+      ],
+      "opt_logs": [
+        "linked 12 entities: ['aether_labs', 'maya_chen', 'pulsedb', 'ceo', 'lena_okonkwo', 'temporal_systems', 'conflict_resolution', 'graphweekly', 'latticedb', 'austin', 'query_optimization', 'weekly_product_review']",
+        "77 nodes -> top 12",
+        "16 cycles removed"
+      ],
+      "latency_ms": 800.5
+    },
+    {
+      "id": "hidden_12",
+      "question": "How many nations competed in Swimming at the 2016 Summer Olympics \u2013 Men's 100 metre butterfly?",
+      "type": "unknown",
+      "routed_pipeline": "graphrag",
+      "jev_probabilities": {
+        "rag": 0.317481917603257,
+        "graphrag": 0.2351963892974645,
+        "agentic": 0.44732169309927844
+      },
+      "route_rule": "graphrag_then_escalate",
+      "answer": "The provided evidence does not contain any information about the number of nations that competed in the Men's 100\u202fmetre butterfly at the 2016 Summer Olympics. Consequently, I cannot determine that figure from the available data.",
+      "citations": [
+        "c_e949e612306b79fb",
+        "c_7fbd291ce9e0a45b",
+        "c_cce653cce1901cdf",
+        "c_b332be9d77d88f6c"
+      ],
+      "tokens": {
+        "prompt": 561,
+        "completion": 78,
+        "total": 639
+      },
+      "context_tokens": 378,
+      "steps": 3,
+      "tools_used": [
+        "entity_linker",
+        "graph_traverse",
+        "doc_retriever"
+      ],
+      "stop_reason": null,
+      "agent_trace": [
+        {
+          "step": 1,
+          "tool": "entity_linker",
+          "args": {
+            "n": 12
+          },
+          "tokens": {
+            "prompt": 0,
+            "completion": 0,
+            "total": 0
+          },
+          "#chunks": 0
+        },
+        {
+          "step": 2,
+          "tool": "graph_traverse",
+          "args": {
+            "hops": 2,
+            "pruned": 12
+          },
+          "tokens": {
+            "prompt": 0,
+            "completion": 0,
+            "total": 0
+          },
+          "#chunks": 4
+        },
+        {
+          "step": 3,
+          "tool": "doc_retriever",
+          "args": {
+            "sent": 4
+          },
+          "tokens": {
+            "prompt": 0,
+            "completion": 0,
+            "total": 0
+          },
+          "#chunks": 4
+        }
+      ],
+      "opt_logs": [
+        "linked 12 entities: ['aether_labs', 'novagraph', 'ceo', 'raj_patel', 'rivermoor_capital', 'oakline_ventures', 'series_b', '42_million', '310_million', 'singapore_office', 'independent_director', 'funds']",
+        "82 nodes -> top 12",
+        "13 cycles removed"
+      ],
+      "latency_ms": 837.3
+    },
+    {
+      "id": "hidden_13",
+      "question": "According to the provided corpus, how many cycling events at the 2016 Summer Olympics had more than 27 competitors?",
+      "type": "unknown",
+      "routed_pipeline": "graphrag",
+      "jev_probabilities": {
+        "rag": 0.32548888195928904,
+        "graphrag": 0.18545797458127367,
+        "agentic": 0.4890531434594373
+      },
+      "route_rule": "graphrag_then_escalate",
+      "answer": "The provided corpus does not contain any information about the number of cycling events at the 2016 Summer Olympics that had more than 27 competitors. Consequently, I cannot determine that figure from the available evidence.",
+      "citations": [
+        "c_e949e612306b79fb",
+        "c_cce653cce1901cdf",
+        "c_b332be9d77d88f6c",
+        "c_5c64959acbe28db4"
+      ],
+      "tokens": {
+        "prompt": 562,
+        "completion": 83,
+        "total": 645
+      },
+      "context_tokens": 383,
+      "steps": 3,
+      "tools_used": [
+        "entity_linker",
+        "graph_traverse",
+        "doc_retriever"
+      ],
+      "stop_reason": null,
+      "agent_trace": [
+        {
+          "step": 1,
+          "tool": "entity_linker",
+          "args": {
+            "n": 12
+          },
+          "tokens": {
+            "prompt": 0,
+            "completion": 0,
+            "total": 0
+          },
+          "#chunks": 0
+        },
+        {
+          "step": 2,
+          "tool": "graph_traverse",
+          "args": {
+            "hops": 2,
+            "pruned": 12
+          },
+          "tokens": {
+            "prompt": 0,
+            "completion": 0,
+            "total": 0
+          },
+          "#chunks": 4
+        },
+        {
+          "step": 3,
+          "tool": "doc_retriever",
+          "args": {
+            "sent": 4
+          },
+          "tokens": {
+            "prompt": 0,
+            "completion": 0,
+            "total": 0
+          },
+          "#chunks": 4
+        }
+      ],
+      "opt_logs": [
+        "linked 12 entities: ['aether_labs', 'maya_chen', 'pulsedb', 'ceo', 'lena_okonkwo', 'temporal_systems', 'conflict_resolution', 'graphweekly', 'latticedb', 'austin', 'query_optimization', 'weekly_product_review']",
+        "77 nodes -> top 12",
+        "16 cycles removed"
+      ],
+      "latency_ms": 672.6
+    },
+    {
+      "id": "hidden_14",
+      "question": "Who won the gold medal in the event held at San Sicario on February 15, 2006?",
+      "type": "unknown",
+      "routed_pipeline": "rag",
+      "jev_probabilities": {
+        "rag": 0.6639860247544016,
+        "graphrag": 0.23235377494381917,
+        "agentic": 0.10366020030177917
+      },
+      "route_rule": "argmax",
+      "answer": "The provided context does not contain any information about a gold\u2011medal winner for an event held at San\u202fSicario on\u202fFebruary\u202f15,\u202f2006.",
+      "citations": [
+        "c_cce653cce1901cdf",
+        "c_b332be9d77d88f6c",
+        "c_0ffdb43f2357a36f",
+        "c_e949e612306b79fb"
+      ],
+      "tokens": {
+        "prompt": 600,
+        "completion": 75,
+        "total": 675
+      },
+      "context_tokens": 401,
+      "steps": 1,
+      "tools_used": [
+        "similarity_search"
+      ],
+      "stop_reason": null,
+      "agent_trace": [
+        {
+          "step": 1,
+          "tool": "similarity_search",
+          "args": {
+            "k": 7,
+            "used": 4
+          },
+          "tokens": {
+            "prompt": 0,
+            "completion": 0,
+            "total": 0
+          },
+          "#chunks": 4
+        }
+      ],
+      "opt_logs": [
+        "top-7 retrieved, 4 sent"
+      ],
+      "latency_ms": 1665.5
+    },
+    {
+      "id": "hidden_15",
+      "question": "How many nations competed in Athletics at the 2016 Summer Olympics \u2013 Men's 400 metres?",
+      "type": "unknown",
+      "routed_pipeline": "graphrag",
+      "jev_probabilities": {
+        "rag": 0.32146979854035634,
+        "graphrag": 0.23519232884645297,
+        "agentic": 0.44333787261319074
+      },
+      "route_rule": "graphrag_then_escalate",
+      "answer": "I\u2019m sorry, but the provided evidence does not contain information about how many nations competed in the men\u2019s 400\u202fmetres at the 2016 Summer Olympics.",
+      "citations": [
+        "c_e949e612306b79fb",
+        "c_7fbd291ce9e0a45b",
+        "c_cce653cce1901cdf",
+        "c_b332be9d77d88f6c"
+      ],
+      "tokens": {
+        "prompt": 560,
+        "completion": 87,
+        "total": 647
+      },
+      "context_tokens": 378,
+      "steps": 3,
+      "tools_used": [
+        "entity_linker",
+        "graph_traverse",
+        "doc_retriever"
+      ],
+      "stop_reason": null,
+      "agent_trace": [
+        {
+          "step": 1,
+          "tool": "entity_linker",
+          "args": {
+            "n": 12
+          },
+          "tokens": {
+            "prompt": 0,
+            "completion": 0,
+            "total": 0
+          },
+          "#chunks": 0
+        },
+        {
+          "step": 2,
+          "tool": "graph_traverse",
+          "args": {
+            "hops": 2,
+            "pruned": 12
+          },
+          "tokens": {
+            "prompt": 0,
+            "completion": 0,
+            "total": 0
+          },
+          "#chunks": 4
+        },
+        {
+          "step": 3,
+          "tool": "doc_retriever",
+          "args": {
+            "sent": 4
+          },
+          "tokens": {
+            "prompt": 0,
+            "completion": 0,
+            "total": 0
+          },
+          "#chunks": 4
+        }
+      ],
+      "opt_logs": [
+        "linked 12 entities: ['aether_labs', 'novagraph', 'ceo', 'raj_patel', 'rivermoor_capital', 'oakline_ventures', 'series_b', '42_million', '310_million', 'singapore_office', 'independent_director', 'funds']",
+        "82 nodes -> top 12",
+        "13 cycles removed"
+      ],
+      "latency_ms": 4680.3
+    },
+    {
+      "id": "hidden_16",
+      "question": "How many nations competed in Athletics at the 2008 Summer Olympics \u2013 Women's shot put?",
+      "type": "unknown",
+      "routed_pipeline": "graphrag",
+      "jev_probabilities": {
+        "rag": 0.32146979854035634,
+        "graphrag": 0.23519232884645297,
+        "agentic": 0.44333787261319074
+      },
+      "route_rule": "graphrag_then_escalate",
+      "answer": "The provided evidence does not contain any information about the number of nations that competed in the women's shot put at the 2008 Summer Olympics.",
+      "citations": [
+        "c_e949e612306b79fb",
+        "c_7fbd291ce9e0a45b",
+        "c_cce653cce1901cdf",
+        "c_b332be9d77d88f6c"
+      ],
+      "tokens": {
+        "prompt": 559,
+        "completion": 68,
+        "total": 627
+      },
+      "context_tokens": 378,
+      "steps": 3,
+      "tools_used": [
+        "entity_linker",
+        "graph_traverse",
+        "doc_retriever"
+      ],
+      "stop_reason": null,
+      "agent_trace": [
+        {
+          "step": 1,
+          "tool": "entity_linker",
+          "args": {
+            "n": 12
+          },
+          "tokens": {
+            "prompt": 0,
+            "completion": 0,
+            "total": 0
+          },
+          "#chunks": 0
+        },
+        {
+          "step": 2,
+          "tool": "graph_traverse",
+          "args": {
+            "hops": 2,
+            "pruned": 12
+          },
+          "tokens": {
+            "prompt": 0,
+            "completion": 0,
+            "total": 0
+          },
+          "#chunks": 4
+        },
+        {
+          "step": 3,
+          "tool": "doc_retriever",
+          "args": {
+            "sent": 4
+          },
+          "tokens": {
+            "prompt": 0,
+            "completion": 0,
+            "total": 0
+          },
+          "#chunks": 4
+        }
+      ],
+      "opt_logs": [
+        "linked 12 entities: ['aether_labs', 'novagraph', 'ceo', 'raj_patel', 'rivermoor_capital', 'oakline_ventures', 'series_b', '42_million', '310_million', 'singapore_office', 'independent_director', 'funds']",
+        "82 nodes -> top 12",
+        "13 cycles removed"
+      ],
+      "latency_ms": 4849.6
+    },
+    {
+      "id": "hidden_17",
+      "question": "Who won the gold medal in the event held at Eton Dorney on 28 July \u2013 4 August 2012?",
+      "type": "unknown",
+      "routed_pipeline": "rag",
+      "jev_probabilities": {
+        "rag": 0.6294893132672268,
+        "graphrag": 0.26571090030920475,
+        "agentic": 0.10479978642356849
+      },
+      "route_rule": "argmax",
+      "answer": "The provided context does not contain any information about the gold\u2011medal winner of the event held at Eton Dorney from\u202f28\u202fJuly\u202fto\u202f4\u202fAugust\u202f2012. Consequently, I cannot answer the question based on the given material.",
+      "citations": [
+        "c_b332be9d77d88f6c",
+        "c_0ffdb43f2357a36f",
+        "c_cce653cce1901cdf",
+        "c_e949e612306b79fb"
+      ],
+      "tokens": {
+        "prompt": 604,
+        "completion": 133,
+        "total": 737
+      },
+      "context_tokens": 401,
+      "steps": 1,
+      "tools_used": [
+        "similarity_search"
+      ],
+      "stop_reason": null,
+      "agent_trace": [
+        {
+          "step": 1,
+          "tool": "similarity_search",
+          "args": {
+            "k": 7,
+            "used": 4
+          },
+          "tokens": {
+            "prompt": 0,
+            "completion": 0,
+            "total": 0
+          },
+          "#chunks": 4
+        }
+      ],
+      "opt_logs": [
+        "top-7 retrieved, 4 sent"
+      ],
+      "latency_ms": 6022.7
+    },
+    {
+      "id": "hidden_18",
+      "question": "Who won the gold medal in the event held at Olympic Stadium on 16\u201318 August 2016?",
+      "type": "unknown",
+      "routed_pipeline": "rag",
+      "jev_probabilities": {
+        "rag": 0.6639860247544016,
+        "graphrag": 0.23235377494381917,
+        "agentic": 0.10366020030177917
+      },
+      "route_rule": "argmax",
+      "answer": "The provided context does not contain any information about an Olympic event held on\u202f16\u201318\u202fAugust\u202f2016 or the gold\u2011medal winner of that event. Therefore, the answer cannot be derived from the given material.",
+      "citations": [
+        "c_b332be9d77d88f6c",
+        "c_0eed75981702db52",
+        "c_0ffdb43f2357a36f",
+        "c_cce653cce1901cdf"
+      ],
+      "tokens": {
+        "prompt": 601,
+        "completion": 93,
+        "total": 694
+      },
+      "context_tokens": 413,
+      "steps": 1,
+      "tools_used": [
+        "similarity_search"
+      ],
+      "stop_reason": null,
+      "agent_trace": [
+        {
+          "step": 1,
+          "tool": "similarity_search",
+          "args": {
+            "k": 7,
+            "used": 4
+          },
+          "tokens": {
+            "prompt": 0,
+            "completion": 0,
+            "total": 0
+          },
+          "#chunks": 4
+        }
+      ],
+      "opt_logs": [
+        "top-7 retrieved, 4 sent"
+      ],
+      "latency_ms": 4743.6
+    },
+    {
+      "id": "hidden_19",
+      "question": "According to the provided corpus, how many alpine skiing events at the 1998 Winter Olympics had more than 45 competitors?",
+      "type": "unknown",
+      "routed_pipeline": "graphrag",
+      "jev_probabilities": {
+        "rag": 0.3213354372097553,
+        "graphrag": 0.18539441956669914,
+        "agentic": 0.4932701432235456
+      },
+      "route_rule": "graphrag_then_escalate",
+      "answer": "The provided corpus does not contain any information about the number of alpine\u2011skiing events at the 1998 Winter Olympics that had more than\u202f45 competitors. Consequently, I cannot answer the question from the given evidence.",
+      "citations": [
+        "c_e949e612306b79fb",
+        "c_cce653cce1901cdf",
+        "c_b332be9d77d88f6c",
+        "c_5c64959acbe28db4"
+      ],
+      "tokens": {
+        "prompt": 563,
+        "completion": 89,
+        "total": 652
+      },
+      "context_tokens": 383,
+      "steps": 3,
+      "tools_used": [
+        "entity_linker",
+        "graph_traverse",
+        "doc_retriever"
+      ],
+      "stop_reason": null,
+      "agent_trace": [
+        {
+          "step": 1,
+          "tool": "entity_linker",
+          "args": {
+            "n": 12
+          },
+          "tokens": {
+            "prompt": 0,
+            "completion": 0,
+            "total": 0
+          },
+          "#chunks": 0
+        },
+        {
+          "step": 2,
+          "tool": "graph_traverse",
+          "args": {
+            "hops": 2,
+            "pruned": 12
+          },
+          "tokens": {
+            "prompt": 0,
+            "completion": 0,
+            "total": 0
+          },
+          "#chunks": 4
+        },
+        {
+          "step": 3,
+          "tool": "doc_retriever",
+          "args": {
+            "sent": 4
+          },
+          "tokens": {
+            "prompt": 0,
+            "completion": 0,
+            "total": 0
+          },
+          "#chunks": 4
+        }
+      ],
+      "opt_logs": [
+        "linked 12 entities: ['aether_labs', 'maya_chen', 'pulsedb', 'ceo', 'lena_okonkwo', 'temporal_systems', 'conflict_resolution', 'graphweekly', 'latticedb', 'austin', 'query_optimization', 'weekly_product_review']",
+        "77 nodes -> top 12",
+        "16 cycles removed"
+      ],
+      "latency_ms": 4816.1
+    },
+    {
+      "id": "hidden_20",
+      "question": "Who won the gold medal in the event held at Royal Artillery Barracks on 5 August 2012?",
+      "type": "unknown",
+      "routed_pipeline": "rag",
+      "jev_probabilities": {
+        "rag": 0.6605722460772224,
+        "graphrag": 0.23406678927165253,
+        "agentic": 0.10536096465112504
+      },
+      "route_rule": "argmax",
+      "answer": "The provided context does not contain any information about an event held at the Royal Artillery Barracks on 5\u202fAugust\u202f2012, nor does it mention who won a gold medal at that event. Consequently, I cannot answer the question based on the given material.",
+      "citations": [
+        "c_b332be9d77d88f6c",
+        "c_0ffdb43f2357a36f",
+        "c_cce653cce1901cdf",
+        "c_e949e612306b79fb"
+      ],
+      "tokens": {
+        "prompt": 601,
+        "completion": 91,
+        "total": 692
+      },
+      "context_tokens": 401,
+      "steps": 1,
+      "tools_used": [
+        "similarity_search"
+      ],
+      "stop_reason": null,
+      "agent_trace": [
+        {
+          "step": 1,
+          "tool": "similarity_search",
+          "args": {
+            "k": 7,
+            "used": 4
+          },
+          "tokens": {
+            "prompt": 0,
+            "completion": 0,
+            "total": 0
+          },
+          "#chunks": 4
+        }
+      ],
+      "opt_logs": [
+        "top-7 retrieved, 4 sent"
+      ],
+      "latency_ms": 6108.4
+    },
+    {
+      "id": "hidden_21",
+      "question": "Who won the gold medal in the men's 200 metre backstroke swimming event at the Summer Olympics held immediately before 2016?",
+      "type": "unknown",
+      "routed_pipeline": "graphrag",
+      "jev_probabilities": {
+        "rag": 0.1262435488012339,
+        "graphrag": 0.6656160270015022,
+        "agentic": 0.20814042419726392
+      },
+      "route_rule": "argmax",
+      "answer": "I\u2019m sorry, but the provided evidence does not contain any information about the men\u2019s 200\u202fmetre backstroke gold\u2011medal winner at the Summer Olympics prior to 2016.",
+      "citations": [
+        "c_e949e612306b79fb",
+        "c_7fbd291ce9e0a45b",
+        "c_cce653cce1901cdf",
+        "c_b332be9d77d88f6c"
+      ],
+      "tokens": {
+        "prompt": 567,
+        "completion": 110,
+        "total": 677
+      },
+      "context_tokens": 378,
+      "steps": 3,
+      "tools_used": [
+        "entity_linker",
+        "graph_traverse",
+        "doc_retriever"
+      ],
+      "stop_reason": null,
+      "agent_trace": [
+        {
+          "step": 1,
+          "tool": "entity_linker",
+          "args": {
+            "n": 12
+          },
+          "tokens": {
+            "prompt": 0,
+            "completion": 0,
+            "total": 0
+          },
+          "#chunks": 0
+        },
+        {
+          "step": 2,
+          "tool": "graph_traverse",
+          "args": {
+            "hops": 2,
+            "pruned": 12
+          },
+          "tokens": {
+            "prompt": 0,
+            "completion": 0,
+            "total": 0
+          },
+          "#chunks": 4
+        },
+        {
+          "step": 3,
+          "tool": "doc_retriever",
+          "args": {
+            "sent": 4
+          },
+          "tokens": {
+            "prompt": 0,
+            "completion": 0,
+            "total": 0
+          },
+          "#chunks": 4
+        }
+      ],
+      "opt_logs": [
+        "linked 12 entities: ['aether_labs', 'maya_chen', 'graphweekly', 'latticedb', 'austin', 'ceo', 'query_optimization', 'weekly_product_review', 'partnership_letters', 'novagraph', 'raj_patel', 'rivermoor_capital']",
+        "82 nodes -> top 12",
+        "13 cycles removed"
+      ],
+      "latency_ms": 4954.3
+    },
+    {
+      "id": "hidden_22",
+      "question": "How many nations competed in Cross-country skiing at the 2014 Winter Olympics \u2013 Men's sprint?",
+      "type": "unknown",
+      "routed_pipeline": "graphrag",
+      "jev_probabilities": {
+        "rag": 0.32146979854035634,
+        "graphrag": 0.23519232884645297,
+        "agentic": 0.44333787261319074
+      },
+      "route_rule": "graphrag_then_escalate",
+      "answer": "The provided evidence does not contain information about how many nations competed in the men's sprint cross\u2011country skiing event at the 2014 Winter Olympics.",
+      "citations": [
+        "c_e949e612306b79fb",
+        "c_7fbd291ce9e0a45b",
+        "c_cce653cce1901cdf",
+        "c_b332be9d77d88f6c"
+      ],
+      "tokens": {
+        "prompt": 560,
+        "completion": 68,
+        "total": 628
+      },
+      "context_tokens": 378,
+      "steps": 3,
+      "tools_used": [
+        "entity_linker",
+        "graph_traverse",
+        "doc_retriever"
+      ],
+      "stop_reason": null,
+      "agent_trace": [
+        {
+          "step": 1,
+          "tool": "entity_linker",
+          "args": {
+            "n": 12
+          },
+          "tokens": {
+            "prompt": 0,
+            "completion": 0,
+            "total": 0
+          },
+          "#chunks": 0
+        },
+        {
+          "step": 2,
+          "tool": "graph_traverse",
+          "args": {
+            "hops": 2,
+            "pruned": 12
+          },
+          "tokens": {
+            "prompt": 0,
+            "completion": 0,
+            "total": 0
+          },
+          "#chunks": 4
+        },
+        {
+          "step": 3,
+          "tool": "doc_retriever",
+          "args": {
+            "sent": 4
+          },
+          "tokens": {
+            "prompt": 0,
+            "completion": 0,
+            "total": 0
+          },
+          "#chunks": 4
+        }
+      ],
+      "opt_logs": [
+        "linked 12 entities: ['aether_labs', 'novagraph', 'ceo', 'raj_patel', 'rivermoor_capital', 'oakline_ventures', 'series_b', '42_million', '310_million', 'singapore_office', 'independent_director', 'funds']",
+        "82 nodes -> top 12",
+        "13 cycles removed"
+      ],
+      "latency_ms": 3683.4
+    },
+    {
+      "id": "hidden_23",
+      "question": "According to the provided corpus, how many shooting events at the 2000 Summer Olympics had more than 42 competitors?",
+      "type": "unknown",
+      "routed_pipeline": "graphrag",
+      "jev_probabilities": {
+        "rag": 0.32548888195928904,
+        "graphrag": 0.18545797458127367,
+        "agentic": 0.4890531434594373
+      },
+      "route_rule": "graphrag_then_escalate",
+      "answer": "The provided corpus does not contain any information about the shooting events at the 2000 Summer Olympics, so I cannot determine how many of those events had more than 42 competitors.",
+      "citations": [
+        "c_e949e612306b79fb",
+        "c_cce653cce1901cdf",
+        "c_b332be9d77d88f6c",
+        "c_5c64959acbe28db4"
+      ],
+      "tokens": {
+        "prompt": 562,
+        "completion": 82,
+        "total": 644
+      },
+      "context_tokens": 383,
+      "steps": 3,
+      "tools_used": [
+        "entity_linker",
+        "graph_traverse",
+        "doc_retriever"
+      ],
+      "stop_reason": null,
+      "agent_trace": [
+        {
+          "step": 1,
+          "tool": "entity_linker",
+          "args": {
+            "n": 12
+          },
+          "tokens": {
+            "prompt": 0,
+            "completion": 0,
+            "total": 0
+          },
+          "#chunks": 0
+        },
+        {
+          "step": 2,
+          "tool": "graph_traverse",
+          "args": {
+            "hops": 2,
+            "pruned": 12
+          },
+          "tokens": {
+            "prompt": 0,
+            "completion": 0,
+            "total": 0
+          },
+          "#chunks": 4
+        },
+        {
+          "step": 3,
+          "tool": "doc_retriever",
+          "args": {
+            "sent": 4
+          },
+          "tokens": {
+            "prompt": 0,
+            "completion": 0,
+            "total": 0
+          },
+          "#chunks": 4
+        }
+      ],
+      "opt_logs": [
+        "linked 12 entities: ['aether_labs', 'maya_chen', 'pulsedb', 'ceo', 'lena_okonkwo', 'temporal_systems', 'conflict_resolution', 'graphweekly', 'latticedb', 'austin', 'query_optimization', 'weekly_product_review']",
+        "77 nodes -> top 12",
+        "16 cycles removed"
+      ],
+      "latency_ms": 6703.3
+    },
+    {
+      "id": "hidden_24",
+      "question": "According to the provided corpus, which cross-country skiing event at the 1998 Winter Olympics had the highest number of competitors?",
+      "type": "unknown",
+      "routed_pipeline": "rag",
+      "jev_probabilities": {
+        "rag": 0.6726186244412872,
+        "graphrag": 0.2129757882672719,
+        "agentic": 0.11440558729144083
+      },
+      "route_rule": "argmax",
+      "answer": "The provided corpus does not contain any information about the cross\u2011country skiing events or competitor numbers from the 1998 Winter Olympics, so the answer cannot be determined from the given material.",
+      "citations": [
+        "c_b332be9d77d88f6c",
+        "c_0ffdb43f2357a36f",
+        "c_e949e612306b79fb",
+        "c_cce653cce1901cdf"
+      ],
+      "tokens": {
+        "prompt": 603,
+        "completion": 96,
+        "total": 699
+      },
+      "context_tokens": 401,
+      "steps": 1,
+      "tools_used": [
+        "similarity_search"
+      ],
+      "stop_reason": null,
+      "agent_trace": [
+        {
+          "step": 1,
+          "tool": "similarity_search",
+          "args": {
+            "k": 7,
+            "used": 4
+          },
+          "tokens": {
+            "prompt": 0,
+            "completion": 0,
+            "total": 0
+          },
+          "#chunks": 4
+        }
+      ],
+      "opt_logs": [
+        "top-7 retrieved, 4 sent"
+      ],
+      "latency_ms": 3743.1
+    },
+    {
+      "id": "hidden_25",
+      "question": "According to the provided corpus, which rowing event at the 2016 Summer Olympics had the highest number of competitors?",
+      "type": "unknown",
+      "routed_pipeline": "rag",
+      "jev_probabilities": {
+        "rag": 0.6760469233303587,
+        "graphrag": 0.21140220140600435,
+        "agentic": 0.11255087526363702
+      },
+      "route_rule": "argmax",
+      "answer": "The provided corpus does not contain any information about rowing events or competitor numbers from the 2016 Summer Olympics, so the question cannot be answered from the given context.",
+      "citations": [
+        "c_b332be9d77d88f6c",
+        "c_0ffdb43f2357a36f",
+        "c_e949e612306b79fb",
+        "c_cce653cce1901cdf"
+      ],
+      "tokens": {
+        "prompt": 601,
+        "completion": 76,
+        "total": 677
+      },
+      "context_tokens": 401,
+      "steps": 1,
+      "tools_used": [
+        "similarity_search"
+      ],
+      "stop_reason": null,
+      "agent_trace": [
+        {
+          "step": 1,
+          "tool": "similarity_search",
+          "args": {
+            "k": 7,
+            "used": 4
+          },
+          "tokens": {
+            "prompt": 0,
+            "completion": 0,
+            "total": 0
+          },
+          "#chunks": 4
+        }
+      ],
+      "opt_logs": [
+        "top-7 retrieved, 4 sent"
+      ],
+      "latency_ms": 7335.0
+    },
+    {
+      "id": "hidden_26",
+      "question": "How many nations competed in Fencing at the 2000 Summer Olympics \u2013 Men's foil?",
+      "type": "unknown",
+      "routed_pipeline": "graphrag",
+      "jev_probabilities": {
+        "rag": 0.3254799193612892,
+        "graphrag": 0.23516814479974732,
+        "agentic": 0.4393519358389635
+      },
+      "route_rule": "graphrag_then_escalate",
+      "answer": "The provided evidence does not contain any information about the number of nations that competed in the men's foil fencing event at the 2000 Summer Olympics. Consequently, I cannot determine that figure from the given sources.",
+      "citations": [
+        "c_e949e612306b79fb",
+        "c_7fbd291ce9e0a45b",
+        "c_cce653cce1901cdf",
+        "c_b332be9d77d88f6c"
+      ],
+      "tokens": {
+        "prompt": 559,
+        "completion": 87,
+        "total": 646
+      },
+      "context_tokens": 378,
+      "steps": 3,
+      "tools_used": [
+        "entity_linker",
+        "graph_traverse",
+        "doc_retriever"
+      ],
+      "stop_reason": null,
+      "agent_trace": [
+        {
+          "step": 1,
+          "tool": "entity_linker",
+          "args": {
+            "n": 12
+          },
+          "tokens": {
+            "prompt": 0,
+            "completion": 0,
+            "total": 0
+          },
+          "#chunks": 0
+        },
+        {
+          "step": 2,
+          "tool": "graph_traverse",
+          "args": {
+            "hops": 2,
+            "pruned": 12
+          },
+          "tokens": {
+            "prompt": 0,
+            "completion": 0,
+            "total": 0
+          },
+          "#chunks": 4
+        },
+        {
+          "step": 3,
+          "tool": "doc_retriever",
+          "args": {
+            "sent": 4
+          },
+          "tokens": {
+            "prompt": 0,
+            "completion": 0,
+            "total": 0
+          },
+          "#chunks": 4
+        }
+      ],
+      "opt_logs": [
+        "linked 12 entities: ['aether_labs', 'novagraph', 'ceo', 'raj_patel', 'rivermoor_capital', 'oakline_ventures', 'series_b', '42_million', '310_million', 'singapore_office', 'independent_director', 'funds']",
+        "82 nodes -> top 12",
+        "13 cycles removed"
+      ],
+      "latency_ms": 2684.4
+    },
+    {
+      "id": "hidden_27",
+      "question": "According to the provided corpus, which cycling event at the 2012 Summer Olympics had the highest number of competitors?",
+      "type": "unknown",
+      "routed_pipeline": "rag",
+      "jev_probabilities": {
+        "rag": 0.6760469233303587,
+        "graphrag": 0.21140220140600435,
+        "agentic": 0.11255087526363702
+      },
+      "route_rule": "argmax",
+      "answer": "The provided corpus does not contain any information about the cycling events or competitor numbers at the 2012 Summer Olympics, so the question cannot be answered from the given context.",
+      "citations": [
+        "c_b332be9d77d88f6c",
+        "c_0ffdb43f2357a36f",
+        "c_e949e612306b79fb",
+        "c_cce653cce1901cdf"
+      ],
+      "tokens": {
+        "prompt": 601,
+        "completion": 79,
+        "total": 680
+      },
+      "context_tokens": 401,
+      "steps": 1,
+      "tools_used": [
+        "similarity_search"
+      ],
+      "stop_reason": null,
+      "agent_trace": [
+        {
+          "step": 1,
+          "tool": "similarity_search",
+          "args": {
+            "k": 7,
+            "used": 4
+          },
+          "tokens": {
+            "prompt": 0,
+            "completion": 0,
+            "total": 0
+          },
+          "#chunks": 4
+        }
+      ],
+      "opt_logs": [
+        "top-7 retrieved, 4 sent"
+      ],
+      "latency_ms": 5465.1
+    },
+    {
+      "id": "hidden_28",
+      "question": "According to the provided corpus, how many wrestling events at the 2012 Summer Olympics had more than 19 competitors?",
+      "type": "unknown",
+      "routed_pipeline": "graphrag",
+      "jev_probabilities": {
+        "rag": 0.32548888195928904,
+        "graphrag": 0.18545797458127367,
+        "agentic": 0.4890531434594373
+      },
+      "route_rule": "graphrag_then_escalate",
+      "answer": "The provided corpus does not contain any information about the 2012 Summer Olympics wrestling events or the number of competitors in those events. Consequently, I cannot determine how many wrestling events had more than 19 competitors.",
+      "citations": [
+        "c_e949e612306b79fb",
+        "c_cce653cce1901cdf",
+        "c_b332be9d77d88f6c",
+        "c_5c64959acbe28db4"
+      ],
+      "tokens": {
+        "prompt": 562,
+        "completion": 86,
+        "total": 648
+      },
+      "context_tokens": 383,
+      "steps": 3,
+      "tools_used": [
+        "entity_linker",
+        "graph_traverse",
+        "doc_retriever"
+      ],
+      "stop_reason": null,
+      "agent_trace": [
+        {
+          "step": 1,
+          "tool": "entity_linker",
+          "args": {
+            "n": 12
+          },
+          "tokens": {
+            "prompt": 0,
+            "completion": 0,
+            "total": 0
+          },
+          "#chunks": 0
+        },
+        {
+          "step": 2,
+          "tool": "graph_traverse",
+          "args": {
+            "hops": 2,
+            "pruned": 12
+          },
+          "tokens": {
+            "prompt": 0,
+            "completion": 0,
+            "total": 0
+          },
+          "#chunks": 4
+        },
+        {
+          "step": 3,
+          "tool": "doc_retriever",
+          "args": {
+            "sent": 4
+          },
+          "tokens": {
+            "prompt": 0,
+            "completion": 0,
+            "total": 0
+          },
+          "#chunks": 4
+        }
+      ],
+      "opt_logs": [
+        "linked 12 entities: ['aether_labs', 'maya_chen', 'pulsedb', 'ceo', 'lena_okonkwo', 'temporal_systems', 'conflict_resolution', 'graphweekly', 'latticedb', 'austin', 'query_optimization', 'weekly_product_review']",
+        "77 nodes -> top 12",
+        "16 cycles removed"
+      ],
+      "latency_ms": 4753.9
+    },
+    {
+      "id": "hidden_29",
+      "question": "According to the provided corpus, how many boxing events at the 2012 Summer Olympics had more than 26 competitors?",
+      "type": "unknown",
+      "routed_pipeline": "graphrag",
+      "jev_probabilities": {
+        "rag": 0.32548888195928904,
+        "graphrag": 0.18545797458127367,
+        "agentic": 0.4890531434594373
+      },
+      "route_rule": "graphrag_then_escalate",
+      "answer": "The provided corpus does not contain any information about the number of boxing events at the 2012 Summer Olympics that had more than 26 competitors. Consequently, I cannot determine that figure from the available evidence.",
+      "citations": [
+        "c_e949e612306b79fb",
+        "c_cce653cce1901cdf",
+        "c_b332be9d77d88f6c",
+        "c_5c64959acbe28db4"
+      ],
+      "tokens": {
+        "prompt": 562,
+        "completion": 84,
+        "total": 646
+      },
+      "context_tokens": 383,
+      "steps": 3,
+      "tools_used": [
+        "entity_linker",
+        "graph_traverse",
+        "doc_retriever"
+      ],
+      "stop_reason": null,
+      "agent_trace": [
+        {
+          "step": 1,
+          "tool": "entity_linker",
+          "args": {
+            "n": 12
+          },
+          "tokens": {
+            "prompt": 0,
+            "completion": 0,
+            "total": 0
+          },
+          "#chunks": 0
+        },
+        {
+          "step": 2,
+          "tool": "graph_traverse",
+          "args": {
+            "hops": 2,
+            "pruned": 12
+          },
+          "tokens": {
+            "prompt": 0,
+            "completion": 0,
+            "total": 0
+          },
+          "#chunks": 4
+        },
+        {
+          "step": 3,
+          "tool": "doc_retriever",
+          "args": {
+            "sent": 4
+          },
+          "tokens": {
+            "prompt": 0,
+            "completion": 0,
+            "total": 0
+          },
+          "#chunks": 4
+        }
+      ],
+      "opt_logs": [
+        "linked 12 entities: ['aether_labs', 'maya_chen', 'pulsedb', 'ceo', 'lena_okonkwo', 'temporal_systems', 'conflict_resolution', 'graphweekly', 'latticedb', 'austin', 'query_optimization', 'weekly_product_review']",
+        "77 nodes -> top 12",
+        "16 cycles removed"
+      ],
+      "latency_ms": 4895.2
+    },
+    {
+      "id": "hidden_30",
+      "question": "According to the provided corpus, which alpine skiing event at the 1994 Winter Olympics had the highest number of competitors?",
+      "type": "unknown",
+      "routed_pipeline": "rag",
+      "jev_probabilities": {
+        "rag": 0.6726186244412872,
+        "graphrag": 0.2129757882672719,
+        "agentic": 0.11440558729144083
+      },
+      "route_rule": "argmax",
+      "answer": "The provided corpus does not contain any information about the alpine skiing events or the number of competitors at the 1994 Winter Olympics, so the answer cannot be determined from the given context.",
+      "citations": [
+        "c_b332be9d77d88f6c",
+        "c_0ffdb43f2357a36f",
+        "c_e949e612306b79fb",
+        "c_cce653cce1901cdf"
+      ],
+      "tokens": {
+        "prompt": 602,
+        "completion": 77,
+        "total": 679
+      },
+      "context_tokens": 401,
+      "steps": 1,
+      "tools_used": [
+        "similarity_search"
+      ],
+      "stop_reason": null,
+      "agent_trace": [
+        {
+          "step": 1,
+          "tool": "similarity_search",
+          "args": {
+            "k": 7,
+            "used": 4
+          },
+          "tokens": {
+            "prompt": 0,
+            "completion": 0,
+            "total": 0
+          },
+          "#chunks": 4
+        }
+      ],
+      "opt_logs": [
+        "top-7 retrieved, 4 sent"
+      ],
+      "latency_ms": 5603.0
+    },
+    {
+      "id": "hidden_31",
+      "question": "Who won the gold medal in the men's 62 kg weightlifting event at the Summer Olympics held immediately before 2016?",
+      "type": "unknown",
+      "routed_pipeline": "graphrag",
+      "jev_probabilities": {
+        "rag": 0.12786502036652983,
+        "graphrag": 0.6657905816504612,
+        "agentic": 0.206344397983009
+      },
+      "route_rule": "argmax",
+      "answer": "I\u2019m sorry, but the provided evidence does not contain any information about the men\u2019s 62\u202fkg weight\u2011lifting gold\u2011medal winner at the Summer Olympics preceding 2016.",
+      "citations": [
+        "c_e949e612306b79fb",
+        "c_7fbd291ce9e0a45b",
+        "c_cce653cce1901cdf",
+        "c_b332be9d77d88f6c"
+      ],
+      "tokens": {
+        "prompt": 566,
+        "completion": 138,
+        "total": 704
+      },
+      "context_tokens": 378,
+      "steps": 3,
+      "tools_used": [
+        "entity_linker",
+        "graph_traverse",
+        "doc_retriever"
+      ],
+      "stop_reason": null,
+      "agent_trace": [
+        {
+          "step": 1,
+          "tool": "entity_linker",
+          "args": {
+            "n": 12
+          },
+          "tokens": {
+            "prompt": 0,
+            "completion": 0,
+            "total": 0
+          },
+          "#chunks": 0
+        },
+        {
+          "step": 2,
+          "tool": "graph_traverse",
+          "args": {
+            "hops": 2,
+            "pruned": 12
+          },
+          "tokens": {
+            "prompt": 0,
+            "completion": 0,
+            "total": 0
+          },
+          "#chunks": 4
+        },
+        {
+          "step": 3,
+          "tool": "doc_retriever",
+          "args": {
+            "sent": 4
+          },
+          "tokens": {
+            "prompt": 0,
+            "completion": 0,
+            "total": 0
+          },
+          "#chunks": 4
+        }
+      ],
+      "opt_logs": [
+        "linked 12 entities: ['aether_labs', 'maya_chen', 'graphweekly', 'latticedb', 'austin', 'ceo', 'query_optimization', 'weekly_product_review', 'partnership_letters', 'novagraph', 'raj_patel', 'rivermoor_capital']",
+        "82 nodes -> top 12",
+        "13 cycles removed"
+      ],
+      "latency_ms": 4887.6
+    },
+    {
+      "id": "hidden_32",
+      "question": "Who won the gold medal in the event held at Pacific Coliseum on February 20, 2010?",
+      "type": "unknown",
+      "routed_pipeline": "rag",
+      "jev_probabilities": {
+        "rag": 0.6639860247544016,
+        "graphrag": 0.23235377494381917,
+        "agentic": 0.10366020030177917
+      },
+      "route_rule": "argmax",
+      "answer": "The provided context does not contain any information about an event held at Pacific Coliseum on February\u202f20,\u202f2010, nor does it mention who won a gold medal at that event. Therefore, I cannot answer the question based on the given material.",
+      "citations": [
+        "c_b332be9d77d88f6c",
+        "c_0ffdb43f2357a36f",
+        "c_cce653cce1901cdf",
+        "c_e949e612306b79fb"
+      ],
+      "tokens": {
+        "prompt": 600,
+        "completion": 87,
+        "total": 687
+      },
+      "context_tokens": 401,
+      "steps": 1,
+      "tools_used": [
+        "similarity_search"
+      ],
+      "stop_reason": null,
+      "agent_trace": [
+        {
+          "step": 1,
+          "tool": "similarity_search",
+          "args": {
+            "k": 7,
+            "used": 4
+          },
+          "tokens": {
+            "prompt": 0,
+            "completion": 0,
+            "total": 0
+          },
+          "#chunks": 4
+        }
+      ],
+      "opt_logs": [
+        "top-7 retrieved, 4 sent"
+      ],
+      "latency_ms": 4806.3
+    },
+    {
+      "id": "hidden_33",
+      "question": "According to the provided corpus, how many alpine skiing events at the 1988 Winter Olympics had more than 57 competitors?",
+      "type": "unknown",
+      "routed_pipeline": "graphrag",
+      "jev_probabilities": {
+        "rag": 0.3213354372097553,
+        "graphrag": 0.18539441956669914,
+        "agentic": 0.4932701432235456
+      },
+      "route_rule": "graphrag_then_escalate",
+      "answer": "The provided corpus does not contain any information about the number of alpine\u2011skiing events at the 1988 Winter Olympics that had more than\u202f57 competitors. Consequently, I cannot answer the question from the given evidence.",
+      "citations": [
+        "c_e949e612306b79fb",
+        "c_cce653cce1901cdf",
+        "c_b332be9d77d88f6c",
+        "c_5c64959acbe28db4"
+      ],
+      "tokens": {
+        "prompt": 563,
+        "completion": 88,
+        "total": 651
+      },
+      "context_tokens": 383,
+      "steps": 3,
+      "tools_used": [
+        "entity_linker",
+        "graph_traverse",
+        "doc_retriever"
+      ],
+      "stop_reason": null,
+      "agent_trace": [
+        {
+          "step": 1,
+          "tool": "entity_linker",
+          "args": {
+            "n": 12
+          },
+          "tokens": {
+            "prompt": 0,
+            "completion": 0,
+            "total": 0
+          },
+          "#chunks": 0
+        },
+        {
+          "step": 2,
+          "tool": "graph_traverse",
+          "args": {
+            "hops": 2,
+            "pruned": 12
+          },
+          "tokens": {
+            "prompt": 0,
+            "completion": 0,
+            "total": 0
+          },
+          "#chunks": 4
+        },
+        {
+          "step": 3,
+          "tool": "doc_retriever",
+          "args": {
+            "sent": 4
+          },
+          "tokens": {
+            "prompt": 0,
+            "completion": 0,
+            "total": 0
+          },
+          "#chunks": 4
+        }
+      ],
+      "opt_logs": [
+        "linked 12 entities: ['aether_labs', 'maya_chen', 'pulsedb', 'ceo', 'lena_okonkwo', 'temporal_systems', 'conflict_resolution', 'graphweekly', 'latticedb', 'austin', 'query_optimization', 'weekly_product_review']",
+        "77 nodes -> top 12",
+        "16 cycles removed"
+      ],
+      "latency_ms": 4771.6
+    },
+    {
+      "id": "hidden_34",
+      "question": "Who won the gold medal in the men's freestyle 120 kg wrestling event at the Summer Olympics held immediately before 2012?",
+      "type": "unknown",
+      "routed_pipeline": "graphrag",
+      "jev_probabilities": {
+        "rag": 0.1262435488012339,
+        "graphrag": 0.6656160270015022,
+        "agentic": 0.20814042419726392
+      },
+      "route_rule": "argmax",
+      "answer": "The gold medal in the men\u2019s freestyle\u202f120\u202fkg wrestling event at the Summer Olympics immediately preceding 2012 (the 2008 Beijing Games) was won by **Bakhtiyar Akhmedov of Russia**. \n\n*No supporting evidence for this fact is present in the provided graph chunks.*",
+      "citations": [
+        "c_e949e612306b79fb",
+        "c_7fbd291ce9e0a45b",
+        "c_cce653cce1901cdf",
+        "c_b332be9d77d88f6c"
+      ],
+      "tokens": {
+        "prompt": 566,
+        "completion": 190,
+        "total": 756
+      },
+      "context_tokens": 378,
+      "steps": 3,
+      "tools_used": [
+        "entity_linker",
+        "graph_traverse",
+        "doc_retriever"
+      ],
+      "stop_reason": null,
+      "agent_trace": [
+        {
+          "step": 1,
+          "tool": "entity_linker",
+          "args": {
+            "n": 12
+          },
+          "tokens": {
+            "prompt": 0,
+            "completion": 0,
+            "total": 0
+          },
+          "#chunks": 0
+        },
+        {
+          "step": 2,
+          "tool": "graph_traverse",
+          "args": {
+            "hops": 2,
+            "pruned": 12
+          },
+          "tokens": {
+            "prompt": 0,
+            "completion": 0,
+            "total": 0
+          },
+          "#chunks": 4
+        },
+        {
+          "step": 3,
+          "tool": "doc_retriever",
+          "args": {
+            "sent": 4
+          },
+          "tokens": {
+            "prompt": 0,
+            "completion": 0,
+            "total": 0
+          },
+          "#chunks": 4
+        }
+      ],
+      "opt_logs": [
+        "linked 12 entities: ['aether_labs', 'maya_chen', 'graphweekly', 'latticedb', 'austin', 'ceo', 'query_optimization', 'weekly_product_review', 'partnership_letters', 'novagraph', 'raj_patel', 'rivermoor_capital']",
+        "82 nodes -> top 12",
+        "13 cycles removed"
+      ],
+      "latency_ms": 7038.1
+    },
+    {
+      "id": "hidden_35",
+      "question": "According to the provided corpus, which rowing event at the 2012 Summer Olympics had the highest number of competitors?",
+      "type": "unknown",
+      "routed_pipeline": "rag",
+      "jev_probabilities": {
+        "rag": 0.6760469233303587,
+        "graphrag": 0.21140220140600435,
+        "agentic": 0.11255087526363702
+      },
+      "route_rule": "argmax",
+      "answer": "The provided corpus does not contain any information about rowing events or competitor numbers at the 2012 Summer Olympics, so the answer cannot be determined from the given context.",
+      "citations": [
+        "c_b332be9d77d88f6c",
+        "c_0ffdb43f2357a36f",
+        "c_e949e612306b79fb",
+        "c_cce653cce1901cdf"
+      ],
+      "tokens": {
+        "prompt": 601,
+        "completion": 76,
+        "total": 677
+      },
+      "context_tokens": 401,
+      "steps": 1,
+      "tools_used": [
+        "similarity_search"
+      ],
+      "stop_reason": null,
+      "agent_trace": [
+        {
+          "step": 1,
+          "tool": "similarity_search",
+          "args": {
+            "k": 7,
+            "used": 4
+          },
+          "tokens": {
+            "prompt": 0,
+            "completion": 0,
+            "total": 0
+          },
+          "#chunks": 4
+        }
+      ],
+      "opt_logs": [
+        "top-7 retrieved, 4 sent"
+      ],
+      "latency_ms": 3694.4
+    },
+    {
+      "id": "hidden_36",
+      "question": "According to the provided corpus, how many short-track speed skating events at the 2018 Winter Olympics had more than 34 competitors?",
+      "type": "unknown",
+      "routed_pipeline": "graphrag",
+      "jev_probabilities": {
+        "rag": 0.3172066396470903,
+        "graphrag": 0.18531432207598914,
+        "agentic": 0.4974790382769206
+      },
+      "route_rule": "graphrag_then_escalate",
+      "answer": "The provided corpus does not contain any information about the number of short\u2011track speed skating events at the 2018 Winter Olympics that had more than\u202f34 competitors. Consequently, I cannot answer the question from the given evidence.",
+      "citations": [
+        "c_e949e612306b79fb",
+        "c_cce653cce1901cdf",
+        "c_b332be9d77d88f6c",
+        "c_5c64959acbe28db4"
+      ],
+      "tokens": {
+        "prompt": 565,
+        "completion": 98,
+        "total": 663
+      },
+      "context_tokens": 383,
+      "steps": 3,
+      "tools_used": [
+        "entity_linker",
+        "graph_traverse",
+        "doc_retriever"
+      ],
+      "stop_reason": null,
+      "agent_trace": [
+        {
+          "step": 1,
+          "tool": "entity_linker",
+          "args": {
+            "n": 12
+          },
+          "tokens": {
+            "prompt": 0,
+            "completion": 0,
+            "total": 0
+          },
+          "#chunks": 0
+        },
+        {
+          "step": 2,
+          "tool": "graph_traverse",
+          "args": {
+            "hops": 2,
+            "pruned": 12
+          },
+          "tokens": {
+            "prompt": 0,
+            "completion": 0,
+            "total": 0
+          },
+          "#chunks": 4
+        },
+        {
+          "step": 3,
+          "tool": "doc_retriever",
+          "args": {
+            "sent": 4
+          },
+          "tokens": {
+            "prompt": 0,
+            "completion": 0,
+            "total": 0
+          },
+          "#chunks": 4
+        }
+      ],
+      "opt_logs": [
+        "linked 12 entities: ['aether_labs', 'maya_chen', 'pulsedb', 'ceo', 'lena_okonkwo', 'temporal_systems', 'conflict_resolution', 'graphweekly', 'latticedb', 'austin', 'query_optimization', 'weekly_product_review']",
+        "77 nodes -> top 12",
+        "16 cycles removed"
+      ],
+      "latency_ms": 5829.6
+    },
+    {
+      "id": "hidden_37",
+      "question": "According to the provided corpus, which sailing event at the 1996 Summer Olympics had the highest number of competitors?",
+      "type": "unknown",
+      "routed_pipeline": "rag",
+      "jev_probabilities": {
+        "rag": 0.6760469233303587,
+        "graphrag": 0.21140220140600435,
+        "agentic": 0.11255087526363702
+      },
+      "route_rule": "argmax",
+      "answer": "The provided corpus does not contain any information about the sailing events or competitor numbers at the 1996 Summer Olympics, so the question cannot be answered from the given context.",
+      "citations": [
+        "c_b332be9d77d88f6c",
+        "c_0ffdb43f2357a36f",
+        "c_e949e612306b79fb",
+        "c_cce653cce1901cdf"
+      ],
+      "tokens": {
+        "prompt": 601,
+        "completion": 78,
+        "total": 679
+      },
+      "context_tokens": 401,
+      "steps": 1,
+      "tools_used": [
+        "similarity_search"
+      ],
+      "stop_reason": null,
+      "agent_trace": [
+        {
+          "step": 1,
+          "tool": "similarity_search",
+          "args": {
+            "k": 7,
+            "used": 4
+          },
+          "tokens": {
+            "prompt": 0,
+            "completion": 0,
+            "total": 0
+          },
+          "#chunks": 4
+        }
+      ],
+      "opt_logs": [
+        "top-7 retrieved, 4 sent"
+      ],
+      "latency_ms": 4551.5
+    },
+    {
+      "id": "hidden_38",
+      "question": "According to the provided corpus, how many athletics events at the 2008 Summer Olympics had more than 40 competitors?",
+      "type": "unknown",
+      "routed_pipeline": "graphrag",
+      "jev_probabilities": {
+        "rag": 0.32548888195928904,
+        "graphrag": 0.18545797458127367,
+        "agentic": 0.4890531434594373
+      },
+      "route_rule": "graphrag_then_escalate",
+      "answer": "The provided corpus does not contain any information about the number of athletics events at the 2008 Summer Olympics that had more than 40 competitors. Consequently, I cannot answer that question from the given evidence.",
+      "citations": [
+        "c_e949e612306b79fb",
+        "c_cce653cce1901cdf",
+        "c_b332be9d77d88f6c",
+        "c_5c64959acbe28db4"
+      ],
+      "tokens": {
+        "prompt": 562,
+        "completion": 84,
+        "total": 646
+      },
+      "context_tokens": 383,
+      "steps": 3,
+      "tools_used": [
+        "entity_linker",
+        "graph_traverse",
+        "doc_retriever"
+      ],
+      "stop_reason": null,
+      "agent_trace": [
+        {
+          "step": 1,
+          "tool": "entity_linker",
+          "args": {
+            "n": 12
+          },
+          "tokens": {
+            "prompt": 0,
+            "completion": 0,
+            "total": 0
+          },
+          "#chunks": 0
+        },
+        {
+          "step": 2,
+          "tool": "graph_traverse",
+          "args": {
+            "hops": 2,
+            "pruned": 12
+          },
+          "tokens": {
+            "prompt": 0,
+            "completion": 0,
+            "total": 0
+          },
+          "#chunks": 4
+        },
+        {
+          "step": 3,
+          "tool": "doc_retriever",
+          "args": {
+            "sent": 4
+          },
+          "tokens": {
+            "prompt": 0,
+            "completion": 0,
+            "total": 0
+          },
+          "#chunks": 4
+        }
+      ],
+      "opt_logs": [
+        "linked 12 entities: ['aether_labs', 'maya_chen', 'pulsedb', 'ceo', 'lena_okonkwo', 'temporal_systems', 'conflict_resolution', 'graphweekly', 'latticedb', 'austin', 'query_optimization', 'weekly_product_review']",
+        "77 nodes -> top 12",
+        "16 cycles removed"
+      ],
+      "latency_ms": 4407.5
+    },
+    {
+      "id": "hidden_39",
+      "question": "According to the provided corpus, how many boxing events at the 1992 Summer Olympics had more than 30 competitors?",
+      "type": "unknown",
+      "routed_pipeline": "graphrag",
+      "jev_probabilities": {
+        "rag": 0.32548888195928904,
+        "graphrag": 0.18545797458127367,
+        "agentic": 0.4890531434594373
+      },
+      "route_rule": "graphrag_then_escalate",
+      "answer": "The provided corpus does not contain any information about the number of boxing events at the 1992 Summer Olympics that had more than 30 competitors. Consequently, I cannot determine that figure from the available evidence.",
+      "citations": [
+        "c_e949e612306b79fb",
+        "c_cce653cce1901cdf",
+        "c_b332be9d77d88f6c",
+        "c_5c64959acbe28db4"
+      ],
+      "tokens": {
+        "prompt": 562,
+        "completion": 83,
+        "total": 645
+      },
+      "context_tokens": 383,
+      "steps": 3,
+      "tools_used": [
+        "entity_linker",
+        "graph_traverse",
+        "doc_retriever"
+      ],
+      "stop_reason": null,
+      "agent_trace": [
+        {
+          "step": 1,
+          "tool": "entity_linker",
+          "args": {
+            "n": 12
+          },
+          "tokens": {
+            "prompt": 0,
+            "completion": 0,
+            "total": 0
+          },
+          "#chunks": 0
+        },
+        {
+          "step": 2,
+          "tool": "graph_traverse",
+          "args": {
+            "hops": 2,
+            "pruned": 12
+          },
+          "tokens": {
+            "prompt": 0,
+            "completion": 0,
+            "total": 0
+          },
+          "#chunks": 4
+        },
+        {
+          "step": 3,
+          "tool": "doc_retriever",
+          "args": {
+            "sent": 4
+          },
+          "tokens": {
+            "prompt": 0,
+            "completion": 0,
+            "total": 0
+          },
+          "#chunks": 4
+        }
+      ],
+      "opt_logs": [
+        "linked 12 entities: ['aether_labs', 'maya_chen', 'pulsedb', 'ceo', 'lena_okonkwo', 'temporal_systems', 'conflict_resolution', 'graphweekly', 'latticedb', 'austin', 'query_optimization', 'weekly_product_review']",
+        "77 nodes -> top 12",
+        "16 cycles removed"
+      ],
+      "latency_ms": 5728.5
+    },
+    {
+      "id": "hidden_40",
+      "question": "Who won the gold medal in the event held at Stadium Australia on 27 September 2000 (heats)29 September 2000 (semi-finals)30 September 2000 (final)?",
+      "type": "unknown",
+      "routed_pipeline": "rag",
+      "jev_probabilities": {
+        "rag": 0.5892945993689334,
+        "graphrag": 0.3038172068549902,
+        "agentic": 0.10688819377607639
+      },
+      "route_rule": "argmax_weak",
+      "answer": "The provided context does not contain any information about the gold\u2011medal winner of the event held at Stadium Australia on 27\u202fSeptember\u202f2000 (heats), 29\u202fSeptember\u202f2000 (semi\u2011finals) and 30\u202fSeptember\u202f2000 (final). Therefore, the answer cannot be derived from the given material.",
+      "citations": [
+        "c_0eed75981702db52",
+        "c_b332be9d77d88f6c",
+        "c_0ffdb43f2357a36f",
+        "c_cce653cce1901cdf"
+      ],
+      "tokens": {
+        "prompt": 619,
+        "completion": 121,
+        "total": 740
+      },
+      "context_tokens": 413,
+      "steps": 1,
+      "tools_used": [
+        "similarity_search"
+      ],
+      "stop_reason": null,
+      "agent_trace": [
+        {
+          "step": 1,
+          "tool": "similarity_search",
+          "args": {
+            "k": 7,
+            "used": 4
+          },
+          "tokens": {
+            "prompt": 0,
+            "completion": 0,
+            "total": 0
+          },
+          "#chunks": 4
+        }
+      ],
+      "opt_logs": [
+        "top-7 retrieved, 4 sent"
+      ],
+      "latency_ms": 6048.3
+    },
+    {
+      "id": "hidden_41",
+      "question": "According to the provided corpus, how many alpine skiing events at the 2006 Winter Olympics had more than 63 competitors?",
+      "type": "unknown",
+      "routed_pipeline": "graphrag",
+      "jev_probabilities": {
+        "rag": 0.3213354372097553,
+        "graphrag": 0.18539441956669914,
+        "agentic": 0.4932701432235456
+      },
+      "route_rule": "graphrag_then_escalate",
+      "answer": "The provided corpus does not contain any information about the number of alpine\u2011skiing events at the 2006 Winter Olympics that had more than\u202f63 competitors. Consequently, I cannot answer the question from the available evidence.",
+      "citations": [
+        "c_e949e612306b79fb",
+        "c_cce653cce1901cdf",
+        "c_b332be9d77d88f6c",
+        "c_5c64959acbe28db4"
+      ],
+      "tokens": {
+        "prompt": 563,
+        "completion": 88,
+        "total": 651
+      },
+      "context_tokens": 383,
+      "steps": 3,
+      "tools_used": [
+        "entity_linker",
+        "graph_traverse",
+        "doc_retriever"
+      ],
+      "stop_reason": null,
+      "agent_trace": [
+        {
+          "step": 1,
+          "tool": "entity_linker",
+          "args": {
+            "n": 12
+          },
+          "tokens": {
+            "prompt": 0,
+            "completion": 0,
+            "total": 0
+          },
+          "#chunks": 0
+        },
+        {
+          "step": 2,
+          "tool": "graph_traverse",
+          "args": {
+            "hops": 2,
+            "pruned": 12
+          },
+          "tokens": {
+            "prompt": 0,
+            "completion": 0,
+            "total": 0
+          },
+          "#chunks": 4
+        },
+        {
+          "step": 3,
+          "tool": "doc_retriever",
+          "args": {
+            "sent": 4
+          },
+          "tokens": {
+            "prompt": 0,
+            "completion": 0,
+            "total": 0
+          },
+          "#chunks": 4
+        }
+      ],
+      "opt_logs": [
+        "linked 12 entities: ['aether_labs', 'maya_chen', 'pulsedb', 'ceo', 'lena_okonkwo', 'temporal_systems', 'conflict_resolution', 'graphweekly', 'latticedb', 'austin', 'query_optimization', 'weekly_product_review']",
+        "77 nodes -> top 12",
+        "16 cycles removed"
+      ],
+      "latency_ms": 4962.8
+    },
+    {
+      "id": "hidden_42",
+      "question": "Who won the gold medal in the mixed trap shooting event at the Summer Olympics held immediately before 1992?",
+      "type": "unknown",
+      "routed_pipeline": "graphrag",
+      "jev_probabilities": {
+        "rag": 0.12950260813308928,
+        "graphrag": 0.665940961996773,
+        "agentic": 0.20455642987013767
+      },
+      "route_rule": "argmax",
+      "answer": "The evidence provided does not contain any information about the mixed trap shooting event or its gold\u2011medal winner at the Summer Olympics prior to 1992. Consequently, I cannot answer the question from the given data.",
+      "citations": [
+        "c_e949e612306b79fb",
+        "c_7fbd291ce9e0a45b",
+        "c_cce653cce1901cdf",
+        "c_b332be9d77d88f6c"
+      ],
+      "tokens": {
+        "prompt": 563,
+        "completion": 63,
+        "total": 626
+      },
+      "context_tokens": 378,
+      "steps": 3,
+      "tools_used": [
+        "entity_linker",
+        "graph_traverse",
+        "doc_retriever"
+      ],
+      "stop_reason": null,
+      "agent_trace": [
+        {
+          "step": 1,
+          "tool": "entity_linker",
+          "args": {
+            "n": 12
+          },
+          "tokens": {
+            "prompt": 0,
+            "completion": 0,
+            "total": 0
+          },
+          "#chunks": 0
+        },
+        {
+          "step": 2,
+          "tool": "graph_traverse",
+          "args": {
+            "hops": 2,
+            "pruned": 12
+          },
+          "tokens": {
+            "prompt": 0,
+            "completion": 0,
+            "total": 0
+          },
+          "#chunks": 4
+        },
+        {
+          "step": 3,
+          "tool": "doc_retriever",
+          "args": {
+            "sent": 4
+          },
+          "tokens": {
+            "prompt": 0,
+            "completion": 0,
+            "total": 0
+          },
+          "#chunks": 4
+        }
+      ],
+      "opt_logs": [
+        "linked 12 entities: ['aether_labs', 'maya_chen', 'graphweekly', 'latticedb', 'austin', 'ceo', 'query_optimization', 'weekly_product_review', 'partnership_letters', 'novagraph', 'raj_patel', 'rivermoor_capital']",
+        "82 nodes -> top 12",
+        "13 cycles removed"
+      ],
+      "latency_ms": 4415.8
+    },
+    {
+      "id": "hidden_43",
+      "question": "Who won the gold medal in the event held at Carioca Arena 3 on 11 August 2016?",
+      "type": "unknown",
+      "routed_pipeline": "rag",
+      "jev_probabilities": {
+        "rag": 0.6605722460772224,
+        "graphrag": 0.23406678927165253,
+        "agentic": 0.10536096465112504
+      },
+      "route_rule": "argmax",
+      "answer": "The provided context does not contain any information about the gold\u2011medal winner of the event held at Carioca\u202fArena\u202f3 on\u202f11\u202fAugust\u202f2016.",
+      "citations": [
+        "c_b332be9d77d88f6c",
+        "c_0ffdb43f2357a36f",
+        "c_cce653cce1901cdf",
+        "c_e949e612306b79fb"
+      ],
+      "tokens": {
+        "prompt": 601,
+        "completion": 78,
+        "total": 679
+      },
+      "context_tokens": 401,
+      "steps": 1,
+      "tools_used": [
+        "similarity_search"
+      ],
+      "stop_reason": null,
+      "agent_trace": [
+        {
+          "step": 1,
+          "tool": "similarity_search",
+          "args": {
+            "k": 7,
+            "used": 4
+          },
+          "tokens": {
+            "prompt": 0,
+            "completion": 0,
+            "total": 0
+          },
+          "#chunks": 4
+        }
+      ],
+      "opt_logs": [
+        "top-7 retrieved, 4 sent"
+      ],
+      "latency_ms": 4554.0
+    },
+    {
+      "id": "hidden_44",
+      "question": "Who won the gold medal in the women's 75 kg weightlifting event at the Summer Olympics held immediately before 2016?",
+      "type": "unknown",
+      "routed_pipeline": "graphrag",
+      "jev_probabilities": {
+        "rag": 0.12786502036652983,
+        "graphrag": 0.6657905816504612,
+        "agentic": 0.206344397983009
+      },
+      "route_rule": "argmax",
+      "answer": "The evidence provided does not contain any information about the women's 75\u202fkg weight\u2011lifting gold\u2011medalist at the Summer Olympics preceding 2016.",
+      "citations": [
+        "c_e949e612306b79fb",
+        "c_7fbd291ce9e0a45b",
+        "c_cce653cce1901cdf",
+        "c_b332be9d77d88f6c"
+      ],
+      "tokens": {
+        "prompt": 566,
+        "completion": 137,
+        "total": 703
+      },
+      "context_tokens": 378,
+      "steps": 3,
+      "tools_used": [
+        "entity_linker",
+        "graph_traverse",
+        "doc_retriever"
+      ],
+      "stop_reason": null,
+      "agent_trace": [
+        {
+          "step": 1,
+          "tool": "entity_linker",
+          "args": {
+            "n": 12
+          },
+          "tokens": {
+            "prompt": 0,
+            "completion": 0,
+            "total": 0
+          },
+          "#chunks": 0
+        },
+        {
+          "step": 2,
+          "tool": "graph_traverse",
+          "args": {
+            "hops": 2,
+            "pruned": 12
+          },
+          "tokens": {
+            "prompt": 0,
+            "completion": 0,
+            "total": 0
+          },
+          "#chunks": 4
+        },
+        {
+          "step": 3,
+          "tool": "doc_retriever",
+          "args": {
+            "sent": 4
+          },
+          "tokens": {
+            "prompt": 0,
+            "completion": 0,
+            "total": 0
+          },
+          "#chunks": 4
+        }
+      ],
+      "opt_logs": [
+        "linked 12 entities: ['aether_labs', 'maya_chen', 'graphweekly', 'latticedb', 'austin', 'ceo', 'query_optimization', 'weekly_product_review', 'partnership_letters', 'novagraph', 'raj_patel', 'rivermoor_capital']",
+        "82 nodes -> top 12",
+        "13 cycles removed"
+      ],
+      "latency_ms": 4634.2
+    },
+    {
+      "id": "hidden_45",
+      "question": "Who won the gold medal in the women's moguls freestyle skiing event at the Winter Olympics held immediately before 2014?",
+      "type": "unknown",
+      "routed_pipeline": "graphrag",
+      "jev_probabilities": {
+        "rag": 0.12786502036652983,
+        "graphrag": 0.6657905816504612,
+        "agentic": 0.206344397983009
+      },
+      "route_rule": "argmax",
+      "answer": "The gold medal in the women\u2019s moguls freestyle\u2011skiing event at the Winter Olympics immediately preceding 2014 (the 2010 Vancouver Games) was won by **Hannah\u202fKearney of the United States**.",
+      "citations": [
+        "c_e949e612306b79fb",
+        "c_7fbd291ce9e0a45b",
+        "c_cce653cce1901cdf",
+        "c_b332be9d77d88f6c"
+      ],
+      "tokens": {
+        "prompt": 565,
+        "completion": 132,
+        "total": 697
+      },
+      "context_tokens": 378,
+      "steps": 3,
+      "tools_used": [
+        "entity_linker",
+        "graph_traverse",
+        "doc_retriever"
+      ],
+      "stop_reason": null,
+      "agent_trace": [
+        {
+          "step": 1,
+          "tool": "entity_linker",
+          "args": {
+            "n": 12
+          },
+          "tokens": {
+            "prompt": 0,
+            "completion": 0,
+            "total": 0
+          },
+          "#chunks": 0
+        },
+        {
+          "step": 2,
+          "tool": "graph_traverse",
+          "args": {
+            "hops": 2,
+            "pruned": 12
+          },
+          "tokens": {
+            "prompt": 0,
+            "completion": 0,
+            "total": 0
+          },
+          "#chunks": 4
+        },
+        {
+          "step": 3,
+          "tool": "doc_retriever",
+          "args": {
+            "sent": 4
+          },
+          "tokens": {
+            "prompt": 0,
+            "completion": 0,
+            "total": 0
+          },
+          "#chunks": 4
+        }
+      ],
+      "opt_logs": [
+        "linked 12 entities: ['aether_labs', 'maya_chen', 'graphweekly', 'latticedb', 'austin', 'ceo', 'query_optimization', 'weekly_product_review', 'partnership_letters', 'novagraph', 'raj_patel', 'rivermoor_capital']",
+        "82 nodes -> top 12",
+        "13 cycles removed"
+      ],
+      "latency_ms": 5574.2
+    },
+    {
+      "id": "hidden_46",
+      "question": "Who won the gold medal in the light flyweight boxing event at the Summer Olympics held immediately before 2004?",
+      "type": "unknown",
+      "routed_pipeline": "graphrag",
+      "jev_probabilities": {
+        "rag": 0.12950260813308928,
+        "graphrag": 0.665940961996773,
+        "agentic": 0.20455642987013767
+      },
+      "route_rule": "argmax",
+      "answer": "I\u2019m sorry, but the provided evidence does not contain any information about the gold\u2011medal winner in the light\u2011flyweight boxing event at the Summer Olympics preceding 2004.",
+      "citations": [
+        "c_e949e612306b79fb",
+        "c_7fbd291ce9e0a45b",
+        "c_cce653cce1901cdf",
+        "c_b332be9d77d88f6c"
+      ],
+      "tokens": {
+        "prompt": 564,
+        "completion": 184,
+        "total": 748
+      },
+      "context_tokens": 378,
+      "steps": 3,
+      "tools_used": [
+        "entity_linker",
+        "graph_traverse",
+        "doc_retriever"
+      ],
+      "stop_reason": null,
+      "agent_trace": [
+        {
+          "step": 1,
+          "tool": "entity_linker",
+          "args": {
+            "n": 12
+          },
+          "tokens": {
+            "prompt": 0,
+            "completion": 0,
+            "total": 0
+          },
+          "#chunks": 0
+        },
+        {
+          "step": 2,
+          "tool": "graph_traverse",
+          "args": {
+            "hops": 2,
+            "pruned": 12
+          },
+          "tokens": {
+            "prompt": 0,
+            "completion": 0,
+            "total": 0
+          },
+          "#chunks": 4
+        },
+        {
+          "step": 3,
+          "tool": "doc_retriever",
+          "args": {
+            "sent": 4
+          },
+          "tokens": {
+            "prompt": 0,
+            "completion": 0,
+            "total": 0
+          },
+          "#chunks": 4
+        }
+      ],
+      "opt_logs": [
+        "linked 12 entities: ['aether_labs', 'maya_chen', 'graphweekly', 'latticedb', 'austin', 'ceo', 'query_optimization', 'weekly_product_review', 'partnership_letters', 'novagraph', 'raj_patel', 'rivermoor_capital']",
+        "82 nodes -> top 12",
+        "13 cycles removed"
+      ],
+      "latency_ms": 5261.0
+    },
+    {
+      "id": "hidden_47",
+      "question": "According to the provided corpus, which cycling event at the 2004 Summer Olympics had the highest number of competitors?",
+      "type": "unknown",
+      "routed_pipeline": "rag",
+      "jev_probabilities": {
+        "rag": 0.6760469233303587,
+        "graphrag": 0.21140220140600435,
+        "agentic": 0.11255087526363702
+      },
+      "route_rule": "argmax",
+      "answer": "The provided corpus does not contain any information about the cycling events or competitor numbers at the 2004 Summer Olympics, so the question cannot be answered from the given context.",
+      "citations": [
+        "c_b332be9d77d88f6c",
+        "c_0ffdb43f2357a36f",
+        "c_e949e612306b79fb",
+        "c_cce653cce1901cdf"
+      ],
+      "tokens": {
+        "prompt": 601,
+        "completion": 83,
+        "total": 684
+      },
+      "context_tokens": 401,
+      "steps": 1,
+      "tools_used": [
+        "similarity_search"
+      ],
+      "stop_reason": null,
+      "agent_trace": [
+        {
+          "step": 1,
+          "tool": "similarity_search",
+          "args": {
+            "k": 7,
+            "used": 4
+          },
+          "tokens": {
+            "prompt": 0,
+            "completion": 0,
+            "total": 0
+          },
+          "#chunks": 4
+        }
+      ],
+      "opt_logs": [
+        "top-7 retrieved, 4 sent"
+      ],
+      "latency_ms": 5736.4
+    },
+    {
+      "id": "hidden_48",
+      "question": "According to the provided corpus, how many cycling events at the 2012 Summer Olympics had more than 30 competitors?",
+      "type": "unknown",
+      "routed_pipeline": "graphrag",
+      "jev_probabilities": {
+        "rag": 0.32548888195928904,
+        "graphrag": 0.18545797458127367,
+        "agentic": 0.4890531434594373
+      },
+      "route_rule": "graphrag_then_escalate",
+      "answer": "The provided corpus does not contain any information about the number of cycling events at the 2012 Summer Olympics that had more than 30 competitors.",
+      "citations": [
+        "c_e949e612306b79fb",
+        "c_cce653cce1901cdf",
+        "c_b332be9d77d88f6c",
+        "c_5c64959acbe28db4"
+      ],
+      "tokens": {
+        "prompt": 562,
+        "completion": 74,
+        "total": 636
+      },
+      "context_tokens": 383,
+      "steps": 3,
+      "tools_used": [
+        "entity_linker",
+        "graph_traverse",
+        "doc_retriever"
+      ],
+      "stop_reason": null,
+      "agent_trace": [
+        {
+          "step": 1,
+          "tool": "entity_linker",
+          "args": {
+            "n": 12
+          },
+          "tokens": {
+            "prompt": 0,
+            "completion": 0,
+            "total": 0
+          },
+          "#chunks": 0
+        },
+        {
+          "step": 2,
+          "tool": "graph_traverse",
+          "args": {
+            "hops": 2,
+            "pruned": 12
+          },
+          "tokens": {
+            "prompt": 0,
+            "completion": 0,
+            "total": 0
+          },
+          "#chunks": 4
+        },
+        {
+          "step": 3,
+          "tool": "doc_retriever",
+          "args": {
+            "sent": 4
+          },
+          "tokens": {
+            "prompt": 0,
+            "completion": 0,
+            "total": 0
+          },
+          "#chunks": 4
+        }
+      ],
+      "opt_logs": [
+        "linked 12 entities: ['aether_labs', 'maya_chen', 'pulsedb', 'ceo', 'lena_okonkwo', 'temporal_systems', 'conflict_resolution', 'graphweekly', 'latticedb', 'austin', 'query_optimization', 'weekly_product_review']",
+        "77 nodes -> top 12",
+        "16 cycles removed"
+      ],
+      "latency_ms": 5294.2
+    },
+    {
+      "id": "hidden_49",
+      "question": "According to the provided corpus, which shooting event at the 1988 Summer Olympics had the highest number of competitors?",
+      "type": "unknown",
+      "routed_pipeline": "rag",
+      "jev_probabilities": {
+        "rag": 0.6760469233303587,
+        "graphrag": 0.21140220140600435,
+        "agentic": 0.11255087526363702
+      },
+      "route_rule": "argmax",
+      "answer": "The provided corpus does not contain any information about shooting events at the 1988 Summer Olympics, so it cannot answer which event had the highest number of competitors.",
+      "citations": [
+        "c_b332be9d77d88f6c",
+        "c_0ffdb43f2357a36f",
+        "c_e949e612306b79fb",
+        "c_cce653cce1901cdf"
+      ],
+      "tokens": {
+        "prompt": 601,
+        "completion": 56,
+        "total": 657
+      },
+      "context_tokens": 401,
+      "steps": 1,
+      "tools_used": [
+        "similarity_search"
+      ],
+      "stop_reason": null,
+      "agent_trace": [
+        {
+          "step": 1,
+          "tool": "similarity_search",
+          "args": {
+            "k": 7,
+            "used": 4
+          },
+          "tokens": {
+            "prompt": 0,
+            "completion": 0,
+            "total": 0
+          },
+          "#chunks": 4
+        }
+      ],
+      "opt_logs": [
+        "top-7 retrieved, 4 sent"
+      ],
+      "latency_ms": 4349.8
+    },
+    {
+      "id": "hidden_50",
+      "question": "Who won the gold medal in the event held at Olympic Stadium on 6\u20139 August at the 2012 Summer Olympics?",
+      "type": "unknown",
+      "routed_pipeline": "rag",
+      "jev_probabilities": {
+        "rag": 0.6259762249229603,
+        "graphrag": 0.2675515855769679,
+        "agentic": 0.10647218950007177
+      },
+      "route_rule": "argmax",
+      "answer": "The provided context does not contain any information about the Olympic events or medal winners from the 2012 Summer Olympics, so I cannot determine who won the gold medal in the event held at Olympic Stadium on 6\u20139\u202fAugust 2012.",
+      "citations": [
+        "c_b332be9d77d88f6c",
+        "c_cce653cce1901cdf",
+        "c_0ffdb43f2357a36f",
+        "c_e949e612306b79fb"
+      ],
+      "tokens": {
+        "prompt": 604,
+        "completion": 111,
+        "total": 715
+      },
+      "context_tokens": 401,
+      "steps": 1,
+      "tools_used": [
+        "similarity_search"
+      ],
+      "stop_reason": null,
+      "agent_trace": [
+        {
+          "step": 1,
+          "tool": "similarity_search",
+          "args": {
+            "k": 7,
+            "used": 4
+          },
+          "tokens": {
+            "prompt": 0,
+            "completion": 0,
+            "total": 0
+          },
+          "#chunks": 4
+        }
+      ],
+      "opt_logs": [
+        "top-7 retrieved, 4 sent"
+      ],
+      "latency_ms": 6829.5
+    }
+  ]
+}
