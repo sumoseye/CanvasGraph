@@ -27,23 +27,22 @@ class Settings:
     TG_GRAPH = _env("TG_GRAPH")
     GRAPH_BACKEND = _env("GRAPH_BACKEND", "memory")
 
-    # --- token-thrifty defaults for hackathon testing ---
     TOP_K = int(_env("TOP_K", "3"))
     HOPS = int(_env("HOPS", "2"))
     CHUNK_TOKENS = int(_env("CHUNK_TOKENS", "200"))
     CHUNK_OVERLAP = int(_env("CHUNK_OVERLAP", "30"))
     PAGERANK_K = int(_env("PAGERANK_K", "8"))
-    MAX_AGENT_STEPS = int(_env("MAX_AGENT_STEPS", "2"))
-    TEST_LIMIT = int(_env("TEST_LIMIT", "3"))
+    MAX_AGENT_STEPS = int(_env("MAX_AGENT_STEPS", "3"))
+    TEST_LIMIT = int(_env("TEST_LIMIT", "6"))
     EVIDENCE_CONF_THRESHOLD = float(_env("EVIDENCE_CONF_THRESHOLD", "0.65"))
     ROUTER_ARGMAX_MIN = float(_env("ROUTER_ARGMAX_MIN", "0.6"))
     LLM_RETRIES = int(_env("LLM_RETRIES", "3"))
 
-    # context / generation caps (chars ≈ tokens*4, keep small)
-    CONTEXT_CHAR_LIMIT = int(_env("CONTEXT_CHAR_LIMIT", "1800"))  # ~3x600
-    ANSWER_MAX_TOKENS = int(_env("ANSWER_MAX_TOKENS", "500"))
-    JSON_MAX_TOKENS = int(_env("JSON_MAX_TOKENS", "400"))
-    JUDGE_MAX_TOKENS = int(_env("JUDGE_MAX_TOKENS", "300"))
+    # Generous limits for gpt-oss reasoning models
+    CONTEXT_CHAR_LIMIT = int(_env("CONTEXT_CHAR_LIMIT", "2000"))
+    ANSWER_MAX_TOKENS = int(_env("ANSWER_MAX_TOKENS", "1000"))
+    JSON_MAX_TOKENS = int(_env("JSON_MAX_TOKENS", "800"))
+    JUDGE_MAX_TOKENS = int(_env("JUDGE_MAX_TOKENS", "800"))
 
     Q_ID_FIELD = _env("Q_ID_FIELD", "id")
     Q_TEXT_FIELD = _env("Q_TEXT_FIELD", "question")

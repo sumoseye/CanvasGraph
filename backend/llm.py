@@ -16,7 +16,6 @@ _client_singleton = None
 
 
 def _client():
-    """Return OpenAI-compatible Groq client, or None if no key."""
     global _client_singleton
     if _client_singleton is not None:
         return _client_singleton
@@ -50,7 +49,6 @@ def _cache_key(system: str, prompt: str) -> str:
 
 def _cache_get(key: str) -> dict | None:
     v = _cache_load().get(key)
-    # must have non-empty text AND a usage dict
     if isinstance(v, dict) and v.get("text") and isinstance(v.get("usage"), dict):
         return v
     return None
@@ -58,7 +56,7 @@ def _cache_get(key: str) -> dict | None:
 
 def _cache_put(key: str, text: str, usage: dict) -> None:
     if not text:
-        return  # never cache empty answers
+        return
     CACHE_PATH.parent.mkdir(parents=True, exist_ok=True)
     data = _cache_load()
     data[key] = {
@@ -73,21 +71,18 @@ def _cache_put(key: str, text: str, usage: dict) -> None:
 
 
 def _usage_from(resp: Any, prompt_text: str, completion_text: str) -> dict:
-    """Extract usage; fall back to rough char/4 estimate if API omits it."""
     u = getattr(resp, "usage", None)
     if u is not None:
         prompt = int(getattr(u, "prompt_tokens", 0) or 0)
         completion = int(getattr(u, "completion_tokens", 0) or 0)
         total = int(getattr(u, "total_tokens", 0) or (prompt + completion))
         return {"prompt": prompt, "completion": completion, "total": total}
-    # fallback estimate
     p = max(1, len(prompt_text) // 4)
     c = max(1, len(completion_text) // 4) if completion_text else 0
     return {"prompt": p, "completion": c, "total": p + c}
 
 
 def _retry_sleep_429(err: Exception) -> float:
-    """Parse 'try again in Xs' from Groq 429 body; default ~8s."""
     msg = str(err)
     m = re.search(r"try again in ([\d.]+)\s*s", msg, re.I)
     if m:
@@ -105,12 +100,6 @@ def complete(
     temperature: float = 0.2,
     max_tokens: int | None = None,
 ) -> tuple[str, dict]:
-    """
-    Return (text, usage{prompt,completion,total}).
-    Cache hit returns ORIGINAL stored usage (never zero).
-    Fails loudly if no API key / all retries exhausted.
-    Never caches empty text.
-    """
     if max_tokens is None:
         max_tokens = settings.ANSWER_MAX_TOKENS
 
@@ -121,10 +110,7 @@ def complete(
 
     client = _client()
     if client is None:
-        raise RuntimeError(
-            "GROQ_API_KEY is missing or empty. "
-            "Set it in .env — silent offline fallback is disabled."
-        )
+        raise RuntimeError("GROQ_API_KEY is missing or empty.")
 
     messages: list[dict[str, str]] = []
     if system:
@@ -147,12 +133,13 @@ def complete(
         try:
             resp = client.chat.completions.create(**kwargs)
             text = (resp.choices[0].message.content or "").strip()
+            finish_reason = getattr(resp.choices[0], "finish_reason", "")
             usage = _usage_from(resp, system + prompt, text)
 
-            # gpt-oss reasoning can eat the budget → empty text; retry bigger
-            if not text and attempt < 4:
-                kwargs["max_tokens"] = int(kwargs["max_tokens"] * 2)
-                time.sleep(0.4)
+            # If finish_reason == 'length' or text is empty, gpt-oss ran out of tokens while thinking
+            if (not text or finish_reason == "length") and attempt < 4:
+                kwargs["max_tokens"] = int(kwargs["max_tokens"] * 1.5)
+                time.sleep(0.5)
                 continue
 
             if text:
@@ -179,47 +166,52 @@ def complete_json(
     temperature: float = 0.1,
     max_tokens: int | None = None,
 ) -> tuple[dict, dict]:
-    """
-    Return (parsed_dict, usage). Retries parse failures up to 3 times.
-    On total failure returns ({}, usage_or_ZERO) — callers should handle empty dict.
-    """
     if max_tokens is None:
         max_tokens = settings.JSON_MAX_TOKENS
 
     last_usage = dict(ZERO)
+    current_max_tokens = max_tokens
+
     for attempt in range(3):
         text, usage = complete(
             prompt,
             system=system,
             json_mode=True,
             temperature=temperature,
-            max_tokens=max_tokens,
+            max_tokens=current_max_tokens,
         )
         last_usage = usage
         if not text:
-            max_tokens = int(max_tokens * 2)
+            current_max_tokens = int(current_max_tokens * 1.5)
             continue
-        # strip markdown fences if model wraps JSON
+
         cleaned = text.strip()
         if cleaned.startswith("```"):
             cleaned = re.sub(r"^```(?:json)?\s*", "", cleaned)
             cleaned = re.sub(r"\s*```$", "", cleaned)
+
         try:
             data = json.loads(cleaned)
             if isinstance(data, dict):
                 return data, usage
         except json.JSONDecodeError:
-            # ask model to fix on next loop by tightening prompt slightly
-            prompt = (
-                prompt
-                + "\n\nPREVIOUS OUTPUT WAS INVALID JSON. Reply with ONLY a single JSON object."
-            )
+            # Look for JSON object substring if model surrounded it with text
+            match = re.search(r"\{.*\}", cleaned, re.DOTALL)
+            if match:
+                try:
+                    data = json.loads(match.group(0))
+                    if isinstance(data, dict):
+                        return data, usage
+                except json.JSONDecodeError:
+                    pass
+            current_max_tokens = int(current_max_tokens * 1.5)
+            prompt = prompt + "\n\nCRITICAL: Output MUST be a valid JSON object."
             continue
+
     return {}, last_usage
 
 
 def estimate_tokens(text: str) -> int:
-    """Rough token estimate for context budgeting (no API call)."""
     if not text:
         return 0
     return max(1, len(text) // 4)

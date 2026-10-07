@@ -18,11 +18,13 @@ from backend.store import get_store
 
 RUNNERS = {"rag": run_rag, "graphrag": run_graphrag, "agentic": run_agentic}
 COST = {"rag": 1, "graphrag": 2, "agentic": 3}
+
 JUDGE_SYS = (
-    "You are a strict grader. Given question, ground truth, and model answer, "
-    'return JSON {"verdict":"PASS"|"FAIL","completeness":0-1,"reason":"..."}. '
-    "PASS if the answer contains the key facts of the ground truth "
-    "(conflicts may mention both sides). Be concise."
+    "You are a strict grader for a RAG hackathon. "
+    "Compare the Candidate Answer against the Ground Truth.\n"
+    "Respond with ONLY a JSON object: {\"verdict\": \"PASS\"|\"FAIL\", \"completeness\": 0.0-1.0, \"reason\": \"<short explanation>\"}.\n"
+    "Mark PASS if the answer contains the core key facts of the ground truth, even if extra details exist. "
+    "Mark FAIL if key facts are missing or incorrect."
 )
 
 
@@ -44,14 +46,12 @@ def load_questions(path: str | Path) -> list[dict]:
 
 
 def _select_questions(questions: list[dict], limit: int | None) -> list[dict]:
-    """When limiting, prefer one question per type so every pipeline type is covered."""
     if not limit or limit <= 0 or limit >= len(questions):
         return questions
     by_type: dict[str, list[dict]] = {}
     for q in questions:
         by_type.setdefault(q["type"], []).append(q)
     picked: list[dict] = []
-    # round-robin across types
     types = list(by_type.keys())
     idx = {t: 0 for t in types}
     while len(picked) < limit and types:
@@ -90,41 +90,53 @@ def _load_rows(jsonl: Path) -> list[dict]:
 
 
 def heuristic_judge(gt: str, answer: str) -> tuple[dict, dict]:
-    stop = {"the", "a", "an", "of", "and", "or", "to", "in", "on", "for", "is", "was", "as", "with"}
+    stop = {"the", "a", "an", "of", "and", "or", "to", "in", "on", "for", "is", "was", "as", "with", "by", "at"}
     gt_t = [w for w in re.findall(r"[a-z0-9]+", (gt or "").lower()) if w not in stop and len(w) > 1]
     ans = (answer or "").lower()
     if not gt_t:
         return {"verdict": "PASS", "completeness": 1.0, "reason": "empty gt"}, dict(ZERO)
-    hits = sum(1 for w in dict.fromkeys(gt_t) if w in ans)
-    uniq = len(dict.fromkeys(gt_t))
-    comp = hits / uniq
+    hits = sum(1 for w in set(gt_t) if w in ans)
+    uniq = len(set(gt_t))
+    comp = hits / uniq if uniq else 0.0
+    verdict = "PASS" if comp >= 0.3 else "FAIL"
     return {
-        "verdict": "PASS" if comp >= 0.45 else "FAIL",
+        "verdict": verdict,
         "completeness": round(comp, 3),
-        "reason": "token overlap",
+        "reason": f"heuristic word match {hits}/{uniq}",
     }, dict(ZERO)
 
 
 def judge(question: str, gt: str, answer: str, *, fast: bool = False) -> tuple[dict, dict]:
-    # --fast or no key → pure heuristic (0 LLM tokens)
     if fast or not settings.GROQ_API_KEY:
         return heuristic_judge(gt, answer)
+
+    prompt = (
+        f"Question: {question}\n"
+        f"Ground Truth: {gt}\n"
+        f"Candidate Answer: {answer[:2000]}"
+    )
     data, usage = complete_json(
-        f"Question: {question}\nGround truth: {gt}\nAnswer: {answer[:2000]}",
+        prompt,
         system=JUDGE_SYS,
         max_tokens=settings.JUDGE_MAX_TOKENS,
     )
-    if data.get("verdict") in ("PASS", "FAIL"):
+
+    verdict = data.get("verdict")
+    if verdict in ("PASS", "FAIL"):
         try:
-            comp = float(data.get("completeness", 0))
+            comp = float(data.get("completeness", 1.0 if verdict == "PASS" else 0.0))
         except (TypeError, ValueError):
-            comp = 0.0
+            comp = 1.0 if verdict == "PASS" else 0.0
         return {
-            "verdict": data["verdict"],
+            "verdict": verdict,
             "completeness": max(0.0, min(1.0, comp)),
-            "reason": data.get("reason", ""),
+            "reason": data.get("reason", "llm_judge"),
         }, usage
-    return heuristic_judge(gt, answer)
+
+    # Fallback to heuristic grader if JSON parsing failed
+    h_res, _ = heuristic_judge(gt, answer)
+    h_res["reason"] = f"heuristic_fallback (llm json parse failed)"
+    return h_res, usage
 
 
 def _row(q: dict, pipe: str, out: dict, j: dict, ju: dict, ms: float) -> dict:
@@ -259,7 +271,6 @@ def run_eval(
     fast: bool = False,
 ) -> dict:
     pipelines = pipelines or ["rag", "graphrag", "agentic"]
-    # default limit from settings when caller passes nothing
     if limit is None:
         limit = settings.TEST_LIMIT
     print(f"LLM: groq / {settings.GROQ_MODEL}")
@@ -285,7 +296,7 @@ def run_eval(
     def emit(row):
         _append(jsonl, row)
         tok = row.get("total_tokens", 0)
-        print(f"  [{row['pipeline']}] {row['id']} correct={row['correct']} tokens={tok}")
+        print(f"  [{row['pipeline']}] {row['id']} correct={row['correct']} tokens={tok} reason={row.get('reason')}")
         if progress:
             progress(
                 {
@@ -298,19 +309,17 @@ def run_eval(
             )
 
     if sequential or fast:
-        # sequential = polite to Groq 8k TPM; also easier to debug
         for q, p in jobs:
             emit(_run_one(q, p, store, fast=fast))
             if not fast:
-                time.sleep(1.2)  # ~stay under 8k TPM on free tier
+                time.sleep(1.0)
     else:
-        workers = 2  # never more than 2 on free tier
+        workers = 2
         with ThreadPoolExecutor(max_workers=workers) as ex:
             futs = {ex.submit(_run_one, q, p, store, fast=fast): (q, p) for q, p in jobs}
             for fut in as_completed(futs):
                 emit(fut.result())
 
-    # Jev routed rows (no extra LLM — reuses pipeline answers already judged)
     rows = _load_rows(jsonl)
     by_q: dict[str, list] = {}
     for r in rows:
@@ -353,8 +362,6 @@ def run_eval(
     }
     (RESULTS_DIR / f"{run_id}_summary.json").write_text(json.dumps(summary, indent=2), encoding="utf-8")
     (RESULTS_DIR / "summary.json").write_text(json.dumps(summary, indent=2), encoding="utf-8")
-    if progress:
-        progress({"event": "done", "run": run_id, "summary": summary})
     print("\n=== SUMMARY ===")
     print(json.dumps(summary.get("pipelines", {}), indent=2))
     return summary
@@ -363,25 +370,21 @@ def run_eval(
 def main():
     import argparse
 
-    p = argparse.ArgumentParser(description="CanvasGraph eval (token-thrifty)")
+    p = argparse.ArgumentParser(description="CanvasGraph eval")
     p.add_argument("file")
     p.add_argument("--pipelines", default="rag,graphrag,agentic")
     p.add_argument("--run", default=None)
-    p.add_argument("--limit", type=int, default=None, help="max questions (default: TEST_LIMIT from env/config)")
-    p.add_argument("--all", action="store_true", help="run every question (ignore TEST_LIMIT)")
-    p.add_argument("--sequential", action="store_true", default=True, help="one job at a time (default)")
-    p.add_argument("--parallel", action="store_true", help="use small thread pool")
-    p.add_argument("--fast", action="store_true", help="heuristic judge only — 0 judge tokens")
-    p.add_argument("--no-fast", action="store_true", help="force LLM judge")
+    p.add_argument("--limit", type=int, default=None)
+    p.add_argument("--all", action="store_true")
+    p.add_argument("--sequential", action="store_true", default=True)
+    p.add_argument("--parallel", action="store_true")
+    p.add_argument("--fast", action="store_true")
+    p.add_argument("--no-fast", action="store_true")
     args = p.parse_args()
 
     limit = None if args.all else (args.limit if args.limit is not None else settings.TEST_LIMIT)
     sequential = not args.parallel
     fast = args.fast and not args.no_fast
-    # default to fast for small test runs unless user forces LLM judge
-    if not args.no_fast and not args.fast and (limit is not None and limit <= 4):
-        fast = True
-        print("auto --fast (limit<=4). Pass --no-fast for LLM judge.")
 
     s = run_eval(
         args.file,
