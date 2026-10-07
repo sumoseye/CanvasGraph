@@ -46,8 +46,8 @@ CanvasGraph/
 │   ├── graph_opt.py         # PageRank top-K pruning & MST skeleton graph algorithms
 │   ├── router.py            # Jev Router pre-classifier
 │   ├── tools.py             # Agent tools (conflict_checker, aggregator, evaluator, etc.)
-│   ├── evaluate.py         # Benchmark evaluator & LLM-as-a-Judge script
-│   └── hidden.py           # Hidden dataset evaluation runner
+│   ├── evaluate.py          # Benchmark evaluator & LLM-as-a-Judge script
+│   └── hidden.py            # Hidden dataset evaluation runner
 ├── frontend/
 │   ├── src/
 │   │   ├── components/      # ForceGraph (2D canvas), Sidebar, TraceViewer
