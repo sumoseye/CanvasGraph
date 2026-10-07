@@ -1,14 +1,64 @@
-[
-  {"id": "q1", "question": "Where is Aether Labs based?", "ground_truth": "Austin, Texas", "type": "single-hop"},
-  {"id": "q2", "question": "Who is the tech lead for NovaGraph?", "ground_truth": "Hiro Tanaka", "type": "single-hop"},
-  {"id": "q3", "question": "Which investor led the Series B of Aether Labs?", "ground_truth": "Rivermoor Capital", "type": "single-hop"},
-  {"id": "q4", "question": "Who is Head of Temporal Systems at Aether Labs?", "ground_truth": "Lena Okonkwo", "type": "single-hop"},
-  {"id": "q5", "question": "Which product does Hiro Tanaka lead that Helix Health uses with PulseDB?", "ground_truth": "NovaGraph", "type": "multi-hop"},
-  {"id": "q6", "question": "After the Singapore office opened, who split time between Austin and Singapore?", "ground_truth": "Lena Okonkwo", "type": "multi-hop"},
-  {"id": "q7", "question": "Compare who announced the Helix Health partnership with who signs contracts after January 2025.", "ground_truth": "Maya Chen announced the partnership; Raj Patel signs contracts after January 2025.", "type": "multi-hop"},
-  {"id": "q8", "question": "Which firm that led Series B later had a director on the Aether Labs board?", "ground_truth": "Rivermoor Capital (Priya Shah)", "type": "multi-hop"},
-  {"id": "q9", "question": "How many people does Aether Labs employ?", "ground_truth": "140", "type": "aggregation"},
-  {"id": "q10", "question": "Which customers use NovaGraph or PulseDB according to the sales brief?", "ground_truth": "Helix Health, Harbor Freight Insurance, Port of Austin", "type": "aggregation"},
-  {"id": "q11", "question": "Who is the CEO of Aether Labs?", "ground_truth": "Raj Patel (as of 2025-01-06); Maya Chen was CEO in 2023 reports.", "type": "conflict"},
-  {"id": "q12", "question": "When did PulseDB launch?", "ground_truth": "Conflicting: internal memo says May 2024; Reuters says October 2024 GA. Prefer Reuters (higher authority) for GA, memo for earliest internal traffic.", "type": "conflict"}
-]
+{
+  "questions": [
+    {
+      "id": "q1",
+      "question": "Who is the CEO of Aether Labs?",
+      "ground_truth": "Lena Vance",
+      "type": "single-hop"
+    },
+    {
+      "id": "q2",
+      "question": "What core product does NovaGraph develop?",
+      "ground_truth": "NovaGraph engine for real-time graph analytics",
+      "type": "single-hop"
+    },
+    {
+      "id": "q3",
+      "question": "Where is Aether Labs headquartered?",
+      "ground_truth": "Singapore",
+      "type": "single-hop"
+    },
+    {
+      "id": "q4",
+      "question": "Who led the Series B funding round for Aether Labs?",
+      "ground_truth": "Apex Ventures led the Series B round",
+      "type": "multi-hop"
+    },
+    {
+      "id": "q5",
+      "question": "Which company acquired the startup whose founder wrote the Aether Labs charter?",
+      "ground_truth": "Aether Labs acquired PulseDB, founded by Hiroshi Tanaka who drafted the charter",
+      "type": "multi-hop"
+    },
+    {
+      "id": "q6",
+      "question": "What is the connection between Lena Vance and PulseDB?",
+      "ground_truth": "Lena Vance as CEO of Aether Labs oversaw the acquisition of PulseDB",
+      "type": "multi-hop"
+    },
+    {
+      "id": "q7",
+      "question": "How many total products, startups, and investor organizations are mentioned across all documents?",
+      "ground_truth": "Includes NovaGraph, PulseDB, Aether Labs, Apex Ventures, Horizon Capital, and Quantum Systems",
+      "type": "aggregation"
+    },
+    {
+      "id": "q8",
+      "question": "List all key executive names and their associated company titles in the corpus.",
+      "ground_truth": "Lena Vance (CEO Aether Labs), Hiroshi Tanaka (Founder PulseDB), Marcus Reed (VP Engineering)",
+      "type": "aggregation"
+    },
+    {
+      "id": "q9",
+      "question": "What was PulseDB's reported revenue in 2023 versus the updated 2025 audited figure?",
+      "ground_truth": "Originally reported as $12 million in 2023, but superseded by the 2025 audit showing $8.5 million",
+      "type": "conflict"
+    },
+    {
+      "id": "q10",
+      "question": "Who is the current head of security at Aether Labs according to the latest 2025 press release?",
+      "ground_truth": "Elena Rostova replaced Marcus Reed as Head of Security in 2025",
+      "type": "conflict"
+    }
+  ]
+}
