@@ -1,8 +1,6 @@
-Here is the absolute raw Markdown code. I have wrapped the entire thing in a special formatting block so it will not break or render as regular text. 
 
-Just click the **Copy** button on the block below and paste it directly into your `README.md` file!
 
-````markdown
+
 # 🐯 CanvasGraph: Agentic GraphRAG with Jev Router
 
 > **Built for the TigerGraph Agentic GraphRAG Hackathon (2026)**  
