@@ -124,8 +124,8 @@ export default function Lab() {
         },
       );
       await load();
-    } catch (e) {
-      setErr(String(e));
+    } catch (errCatch) {
+      setErr(String(errCatch));
     } finally {
       setBusy(false);
     }

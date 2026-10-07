@@ -39,8 +39,8 @@ export default function Sidebar({
       const r = await fn();
       setMsg(`Ingested ✓ ${JSON.stringify(r).slice(0, 80)}`);
       onIngested();
-    } catch (e) {
-      setMsg(String(e));
+    } catch (err) {
+      setMsg(String(err));
     } finally {
       setBusy(false);
     }
@@ -180,15 +180,4 @@ export default function Sidebar({
   );
 }
 
-function Stat({ label, value }: { label: string; value: unknown }) {
-  let displayStr = "—";
-  if (value !== null && value !== undefined) {
-    displayStr = typeof value === "object" ? JSON.stringify(value) : String(value);
-  }
-  return (
-    <div className="bg-panel-2 rounded px-2 py-1.5 border border-border">
-      <div className="text-[10px] text-slate-500">{label}</div>
-      <div className="font-mono text-sm">{displayStr}</div>
-    </div>
-  );
-}
+function Stat({ label, value }: { label: string; value: unknown }) 
