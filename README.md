@@ -1,4 +1,9 @@
-#  CanvasGraph: Agentic GraphRAG with Jev Router
+Here is the absolute raw Markdown code. I have wrapped the entire thing in a special formatting block so it will not break or render as regular text. 
+
+Just click the **Copy** button on the block below and paste it directly into your `README.md` file!
+
+````markdown
+# 🐯 CanvasGraph: Agentic GraphRAG with Jev Router
 
 > **Built for the TigerGraph Agentic GraphRAG Hackathon (2026)**  
 > **Headline Question Answered:** *Which questions NEED an agent, and which don't?*
@@ -10,11 +15,11 @@
 
 ---
 
-##  Quick Links to Submission Deliverables
+## 🌟 Quick Links to Submission Deliverables
 
-*  **50 Hidden Dataset Results Payload:** [`results/hidden_submission.json`](./results/hidden_submission.json)
-*  **Visible Benchmark Summary:** [`results/summary.json`](./results/summary.json)
-*  **Medium Technical Article:** [CanvasGraph: Teaching an AI When Not to Think Too Hard](https://medium.com/@24b55.livona/canvasgraph-teaching-an-ai-when-not-to-think-too-hard-b975a9db3912)
+* 📊 **50 Hidden Dataset Results Payload:** [`results/hidden_submission.json`](./results/hidden_submission.json)
+* 📈 **Visible Benchmark Summary:** [`results/summary.json`](./results/summary.json)
+* 📝 **Medium Technical Article:** [CanvasGraph: Teaching an AI When Not to Think Too Hard](https://medium.com/@24b55.livona/canvasgraph-teaching-an-ai-when-not-to-think-too-hard-b975a9db3912)
 
 ---
 
@@ -23,18 +28,22 @@
 CanvasGraph compares three pipelines over document corpora — **RAG**, **GraphRAG**, and **Agentic GraphRAG** — to prove where agentic reasoning adds value vs where it is token overkill.
 
 ### Key Features
-1. ** Jev Router:** A non-generative (<150ms) pre-classifier that calculates routing probabilities across `{rag, graphrag, agentic}` before calling any LLM, reducing average token burn by **~65%** compared to "Always Agentic".
-2. ** TigerGraph Savanna Integration:** Dual-writes document chunks and extracted entities to TigerGraph Cloud via `pyTigerGraph` with a persistent NetworkX local shadow-store fallback.
-3. ** Temporal Conflict Resolution:** Detects contradictory/superseded facts using recency dates (`valid_from`) and `source_authority`, outputting an uncertainty score and rendering `SUPERSEDED_BY` relationships as **thick red-dashed lines** on the Canvas graph.
-4. ** React Canvas & Benchmark Lab UI:** Interactive force-graph UI (`react-force-graph-2d`) with live tool traces, token meters, side-by-side answer comparisons, and 4 Recharts benchmark visualization panels.
+1. **🧠 Jev Router:** A non-generative (<150ms) pre-classifier that calculates routing probabilities across `{rag, graphrag, agentic}` before calling any LLM, reducing average token burn by **~65%** compared to "Always Agentic".
+2. **🐯 TigerGraph Savanna Integration:** Dual-writes document chunks and extracted entities to TigerGraph Cloud via `pyTigerGraph` with a persistent NetworkX local shadow-store fallback.
+3. **⏳ Temporal Conflict Resolution:** Detects contradictory/superseded facts using recency dates (`valid_from`) and `source_authority`, outputting an uncertainty score and rendering `SUPERSEDED_BY` relationships as **thick red-dashed lines** on the Canvas graph.
+4. **🎨 React Canvas & Benchmark Lab UI:** Interactive force-graph UI (`react-force-graph-2d`) with live tool traces, token meters, side-by-side answer comparisons, and 4 Recharts benchmark visualization panels.
 
 ---
 
-## Architecture Diagram
+## 🏗️ Architecture Diagram
 
 <img width="1774" height="887" alt="archi" src="https://github.com/user-attachments/assets/b7434bfe-75bd-4606-92b7-458fd4b2ff02" />
 
-## Project structure
+---
+
+## 📂 Project Structure
+
+```text
 CanvasGraph/
 ├── backend/
 │   ├── main.py              # FastAPI Server (/ask, /graph, /benchmark SSE, /results)
@@ -63,8 +72,15 @@ CanvasGraph/
 ├── .env.example
 ├── requirements.txt
 └── README.md
+```
 
-## Quick Start & Setup Instructions
+---
+
+## ⚡ Quick Start & Setup Instructions
+
+### 1. Prerequisites & Virtual Environment
+
+```bash
 # Clone the repository
 git clone https://github.com/sumoseye/CanvasGraph.git
 cd CanvasGraph
@@ -75,11 +91,13 @@ source .venv/bin/activate
 
 # Install backend dependencies
 pip install -r requirements.txt
-2. Environment Configuration (.env)
-Create a .env file in the root directory:
+```
 
-env
+### 2. Environment Configuration (`.env`)
 
+Create a `.env` file in the root directory:
+
+```env
 GROQ_API_KEY=gsk_your_groq_api_key_here
 GROQ_MODEL=openai/gpt-oss-120b
 GROQ_BASE_URL=https://api.groq.com/openai/v1
@@ -94,9 +112,11 @@ TOP_K=3
 HOPS=2
 PAGERANK_K=8
 MAX_AGENT_STEPS=3
-3. Ingest Corpus & Run Benchmarks
-Bash
+```
 
+### 3. Ingest Corpus & Run Benchmarks
+
+```bash
 # Ingest official corpus into TigerGraph + Shadow Store
 python -m backend.main_cli ingest data/corpus/corpus.jsonl
 
@@ -105,9 +125,11 @@ python -m backend.evaluate data/questions/eval_public.jsonl --all --fast --seque
 
 # Generate 50 hidden questions submission JSON payload
 python -m backend.hidden --file data/questions/eval_hidden.jsonl --out results/hidden_submission.json
-4. Run Frontend Development Server
-Bash
+```
 
+### 4. Run Frontend Development Server
+
+```bash
 # Start backend API (Terminal 1)
 .venv/bin/uvicorn backend.main:app --reload --host 0.0.0.0 --port 8000
 
@@ -115,12 +137,26 @@ Bash
 cd frontend
 npm install
 npm run dev
-Open http://localhost:5173 to view the Canvas Graph Playground and Benchmark Lab!
+```
 
- Key Benchmark Results
-Metric	RAG	GraphRAG	Agentic GraphRAG	Jev Routed
-Accuracy %	50.0%	66.7%	66.7%	66.7%
-Avg Tokens / Query	692	657	1,851	669
-Avg Latency	2.5s	2.8s	7.7s	3.9s
-*Key Takeaway*: GraphRAG achieved a +16.7% accuracy boost over RAG at lower token cost. While Agentic GraphRAG matched GraphRAG's accuracy, it burned 3x tokens. The Jev Router successfully preserved peak 66.7% accuracy while reducing token burn by ~64% compared to "Always Agentic".
+Open `http://localhost:5173` to view the Canvas Graph Playground and Benchmark Lab!
 
+---
+
+## 📊 Key Benchmark Results
+
+| Metric | RAG | GraphRAG | Agentic GraphRAG | Jev Routed |
+| :--- | :---: | :---: | :---: | :---: |
+| **Accuracy %** | 50.0% | **66.7%** | **66.7%** | **66.7%** |
+| **Avg Tokens / Query** | 692 | **657** | 1,851 | **669** |
+| **Avg Latency** | **2.5s** | 2.8s | 7.7s | 3.9s |
+
+* **Key Takeaway:** GraphRAG achieved a **+16.7% accuracy boost** over RAG at lower token cost. While Agentic GraphRAG matched GraphRAG's accuracy, it burned 3x tokens. The **Jev Router** successfully preserved peak 66.7% accuracy while reducing token burn by **~64%** compared to "Always Agentic".
+
+---
+
+## 🛡️ License & Acknowledgments
+
+Built for the **TigerGraph Agentic GraphRAG Hackathon (2026)**.  
+Powered by **TigerGraph Savanna Cloud**, **Groq API**, and **Vite + React**.
+````
