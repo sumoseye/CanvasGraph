@@ -180,4 +180,13 @@ export default function Sidebar({
   );
 }
 
-function Stat({ label, value }: { label: string; value: unknown }) 
+function Stat({ label, value }: { label: string; value: unknown }) {
+  return (
+    <div className="bg-panel-2 p-2 rounded border border-border">
+      <div className="text-[10px] text-slate-500 uppercase">{label}</div>
+      <div className="text-sm font-semibold truncate">
+        {value !== undefined && value !== null ? String(value) : "—"}
+      </div>
+    </div>
+  );
+}
